@@ -134,7 +134,7 @@ fun isDebugEnabled(): Boolean {
 @Composable
 fun HomeScreenPreview() {
   AuthfySampleTheme {
-    LOCAL_DEBUG = true
+    LOCAL_DEBUG = false
 
     Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
       HomeScreen(

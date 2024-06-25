@@ -64,7 +64,7 @@ fun OtpTextField(modifier: Modifier = Modifier, maxLength: Int = 6, onValueChang
     verticalAlignment = Alignment.CenterVertically,
     horizontalArrangement = Arrangement.SpaceBetween,
     modifier = modifier
-      .padding(horizontal = 5.dp)
+//      .padding(horizontal = 5.dp)
   ) {
     OutlinedTextField(
       value = value,

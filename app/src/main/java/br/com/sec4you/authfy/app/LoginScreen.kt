@@ -18,9 +18,10 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import br.com.sec4you.authfy.app.ui.theme.AuthfySampleTheme
+import net.openid.appauth.AuthState
 
 @Composable
-fun LoginScreen(navController: NavController, authenticated: Boolean) {
+fun LoginScreen(navController: NavController, authenticated: Boolean, authStateManager: AuthStateManager) {
   if (authenticated) {
     navController.navigate(Screen.HomeScreen.route)
     return
@@ -53,7 +54,7 @@ fun LoginScreen(navController: NavController, authenticated: Boolean) {
 fun MainScreenPreview() {
   AuthfySampleTheme {
     Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-      LoginScreen(navController = rememberNavController(), authenticated = false)
+      LoginScreen(navController = rememberNavController(), authenticated = false, authStateManager = AuthStateManager(null, null))
     }
   }
 }

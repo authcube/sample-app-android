@@ -48,6 +48,7 @@ import br.com.sec4you.authfy.app.ui.screens.home.HeaderPanel
 import br.com.sec4you.authfy.app.ui.screens.home.MenuPanel
 import br.com.sec4you.authfy.app.ui.theme.AuthfySampleTheme
 import br.com.sec4you.authfy.app.ui.theme.LogoutButtonBackground
+import net.openid.appauth.AuthState
 
 // https://proandroiddev.com/jetpack-compose-tricks-conditionally-applying-modifiers-for-dynamic-uis-e3fe5a119f45
 inline fun Modifier.conditional(
@@ -95,7 +96,8 @@ fun HomeScreen(
   navController: NavController,
   authenticated: Boolean,
   onUserInfoClick: () -> Unit,
-  onLogoutClick: () -> Unit
+  onLogoutClick: () -> Unit,
+  authStateManager: AuthStateManager
 ) {
   var TAG = "AUTHFY:SC:HO"
 
@@ -111,15 +113,19 @@ fun HomeScreen(
       .conditional(isDebugEnabled(), {
         border(BorderStroke(2.dp, SolidColor(Color.Red)))
       })
-      .padding(horizontal = 15.dp, vertical = 10.dp)
+      .padding(horizontal = 10.dp, vertical = 10.dp)
   ) {
 //    Text(
-//      text = "Home"
+//      text = "asd"
 //    )
-    HeaderPanel(onUserInfoClick = { })
+//    HeaderPanel(onUserInfoClick = { })
+    HeaderPanel(modifier, authStateManager)
     MenuPanel()
     ContentPanel()
     Spacer(modifier = Modifier.weight(1.0f)) // fill height with spacer
+//    Text(
+//      text = authStateManager.authState.accessToken.toString()
+//    )
     FooterPanel(onLogoutClick = onLogoutClick)
   }
 }
@@ -141,7 +147,8 @@ fun HomeScreenPreview() {
         navController = rememberNavController(),
         authenticated = true,
         onUserInfoClick = {},
-        onLogoutClick = {})
+        onLogoutClick = {},
+        authStateManager = AuthStateManager(null, null))
     }
   }
 }

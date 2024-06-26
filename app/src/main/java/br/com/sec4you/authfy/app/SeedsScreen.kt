@@ -1,15 +1,15 @@
-package br.com.sec4you.authfy.app.ui.screens.home
+package br.com.sec4you.authfy.app
 
 import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -27,49 +27,51 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import br.com.sec4you.authfy.app.AuthStateManager
-import br.com.sec4you.authfy.app.NetworkUtils
-import br.com.sec4you.authfy.app.conditional
-import br.com.sec4you.authfy.app.isDebugEnabled
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import br.com.sec4you.authfy.app.ui.theme.AuthfySampleTheme
+import kotlinx.coroutines.launch
 import net.openid.appauth.AuthState.AuthStateAction
 import net.openid.appauth.AuthorizationService
-import androidx.lifecycle.lifecycleScope
-import kotlinx.coroutines.launch
-
-
 
 @Composable
-//fun HeaderPanel(modifier: Modifier = Modifier, onUserInfoClick: () -> Unit = {}) {
-fun HeaderPanel(modifier: Modifier = Modifier, authStateManager: AuthStateManager) {
+fun SeedsScreen(navController: NavHostController, authStateManager: AuthStateManager) {
 
-  val TAG = "AUTHFY:HEADER"
+  val TAG = "AUTHFY:SEEDS"
   val context = LocalContext.current
 
   val coroutineScope = rememberCoroutineScope()
-  var userInfoText by remember {
-    mutableStateOf("Click 'Get User Info' to fetch the 'username'")
+  var seedInformation by remember {
+    mutableStateOf("")
   }
 
   val authService = remember {
     AuthorizationService(context)
   }
 
+  // TODO try to get at least part of URL from discoverDoc
+  val enrollEndpoint = "https://demo.authfy.tech/sample-app/mfa/totp/enrollment"
 
   Column(
     verticalArrangement = Arrangement.Center,
     horizontalAlignment = Alignment.CenterHorizontally,
-    modifier = modifier
+    modifier = Modifier
       .fillMaxWidth()
       .defaultMinSize(minHeight = 100.dp)
       .conditional(isDebugEnabled(), {
         border(BorderStroke(2.dp, SolidColor(Color.Magenta)))
       })
-  ) {
-    Button(
-//      onClick = { onUserInfoClick() },
-      onClick = {
+  )
+  {
+    Row(modifier = Modifier
+      .padding(vertical = 10.dp)
+    ) {
+      Text(text = "OTP Seeds")
+    }
+    Row {
+      Button(onClick = {
 
+        // do post
         authStateManager.authState.performActionWithFreshTokens(authService,
           AuthStateAction { accessToken, idToken, ex ->
             if (ex != null) {
@@ -78,48 +80,58 @@ fun HeaderPanel(modifier: Modifier = Modifier, authStateManager: AuthStateManage
               return@AuthStateAction
             }
 
-            userInfoText = "Fetching user info..."
+            seedInformation = "Performing enrollment ..."
 
             // use the access token to do something ...
-            val userInfoUrl: String =
-              authStateManager.authState.lastTokenResponse?.request?.configuration?.discoveryDoc?.userinfoEndpoint.toString()
+            val headers = mapOf(
+              "Content-Type" to "application/json",
+              "Authorization" to "Bearer $accessToken"
+            )
 
-            val headers = mapOf("Authorization" to "Bearer $accessToken")
+            val body = "{\"verbose\": false}"
 
             coroutineScope.launch {
-              val result = NetworkUtils.doGet(userInfoUrl, headers)
+              seedInformation = "Performing enrollment ..."
+              val result = NetworkUtils.doPost(enrollEndpoint, headers, body)
 
               if (result != null) {
-                userInfoText = result.getValue("uid").toString()
+
+                val contents = result["contents"] as? List<Map<String, Any>>
+                val targetValue = contents?.find { content ->
+                  (content["rel"] as? List<String>)?.contains("urn:mfao:totp:enrollment:data") ?: false
+                }?.get("values") as? List<String>
+                val otpSeed = targetValue?.firstOrNull()
+
+                seedInformation = otpSeed ?: "Error during enrollment"
+
               } else {
-                userInfoText = "Error getting userinfo"
+                seedInformation = "Error during enrollment"
                 Log.e(TAG, "Error making request to server, [result is NULL]")
               }
             }
           }
         )
 
-      },
-      shape = RoundedCornerShape(25),
-    ) {
-      Text(
-        text = "Get User Info"
-      )
+      }) {
+        Text(text = "Enroll")
+      }
     }
-    Text(
-      modifier = Modifier.padding(top = 10.dp),
-      text = userInfoText
-    )
+    Row(Modifier.padding(vertical = 10.dp, horizontal = 15.dp)) {
+      Text(text = seedInformation)
+    }
   }
+
 }
 
 @Preview(showBackground = true)
 @Composable
-fun HomeHeaderPanelPreview() {
+fun SeedsScreenPreview() {
   AuthfySampleTheme {
+
     Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-//      HeaderPanel(onUserInfoClick = {})
-      HeaderPanel(authStateManager = AuthStateManager(null, null))
+      SeedsScreen(
+        navController = rememberNavController(),
+        authStateManager = AuthStateManager(null, null))
     }
   }
 }

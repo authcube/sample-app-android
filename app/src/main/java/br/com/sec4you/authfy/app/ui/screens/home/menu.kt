@@ -27,31 +27,41 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
+import br.com.sec4you.authfy.app.AuthStateManager
 import br.com.sec4you.authfy.app.DEBUG_IS_ENABLED
+import br.com.sec4you.authfy.app.Screen
 import br.com.sec4you.authfy.app.conditional
 import br.com.sec4you.authfy.app.isDebugEnabled
 import br.com.sec4you.authfy.app.ui.theme.AuthfySampleTheme
 
 
 @Composable
-fun MenuPanel(modifier: Modifier = Modifier) {
+fun MenuPanel( navController: NavController,
+              authStateManager: AuthStateManager) {
   Column(
     horizontalAlignment = Alignment.CenterHorizontally,
-    modifier = modifier
+    modifier = Modifier
       .conditional(isDebugEnabled(), {
         border(BorderStroke(2.dp, SolidColor(Color.Green)))
       })
       .padding(vertical = 10.dp)
   ) {
-    MenuItem(title = "ID Tokens")
-    MenuItem(title = "Access Token")
-    MenuItem(title = "Refresh Token")
-    MenuItem(title = "Seeds")
+    MenuItem(title = "ID Tokens", onButtonClick = {})
+    MenuItem(title = "Access Token", onButtonClick = {})
+    MenuItem(title = "Refresh Token", onButtonClick = {})
+    MenuItem(title = "Seeds", onButtonClick = {
+      navController.navigate(Screen.SeedsScreen.route)
+    })
   }
 }
 
 @Composable
-fun MenuItem(modifier: Modifier = Modifier, title: String) {
+fun MenuItem(title: String, onButtonClick: () -> Unit) {
+
+  val modifier = Modifier
+
   Row(
     horizontalArrangement = Arrangement.SpaceBetween,
     modifier = modifier
@@ -62,7 +72,7 @@ fun MenuItem(modifier: Modifier = Modifier, title: String) {
       text = title
     )
     Button(
-      onClick = {},
+      onClick = onButtonClick,
       shape = CircleShape,
       modifier = modifier
         .size(30.dp),
@@ -90,7 +100,9 @@ fun HomeMenuuPanelPreview() {
     LOCAL_DEBUG = true
 
     Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-      MenuPanel()
+      MenuPanel(navController = rememberNavController(),
+        authStateManager = AuthStateManager(null, null)
+      )
     }
   }
 }

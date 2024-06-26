@@ -68,5 +68,12 @@ fun AuthyNavigator(route: String = Screen.MainScreen.route) {
         authStateManager = authStateManager
       )
     }
+
+    composable(route = Screen.SeedsScreen.route) {
+      SeedsScreen(
+        navController = navController,
+        authStateManager = authStateManager
+      )
+    }
   }
 }

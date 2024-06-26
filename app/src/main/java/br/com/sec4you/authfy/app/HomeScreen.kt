@@ -120,7 +120,7 @@ fun HomeScreen(
 //    )
 //    HeaderPanel(onUserInfoClick = { })
     HeaderPanel(modifier, authStateManager)
-    MenuPanel()
+    MenuPanel(navController, authStateManager)
     ContentPanel()
     Spacer(modifier = Modifier.weight(1.0f)) // fill height with spacer
 //    Text(

@@ -45,15 +45,12 @@ fun AuthScreen(
 ) {
 
   val context = navController.context
-  val _activity = context as? Activity
 
   val authService = remember {
     AuthorizationService(context)
   }
 
-
   val TAG = "AUTHFY:AuthScreen"
-  val RC_AUTH = 121212
 
   if (authenticated) {
     navController.navigate(Screen.HomeScreen.route)
@@ -143,7 +140,7 @@ fun AuthScreen(
                       ResponseTypeValues.CODE,
                       Uri.parse("br.com.sec4you.authfy.app.appsample:/oauth2redirect")
                     )
-                      .setScope("openid email profile")
+                      .setScope("openid email profile roles")
                       .setLoginHint("jdoe@user.example.com")
                       .build()
 

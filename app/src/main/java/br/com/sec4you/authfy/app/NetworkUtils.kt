@@ -44,7 +44,7 @@ object NetworkUtils {
   }
 
 
-  suspend fun doPost(urlString: String, headers: Map<String, String>, body: String): String? {
+  suspend fun doPost(urlString: String, headers: Map<String, String>, body: String): Map<String, Any>? {
     return withContext(Dispatchers.IO) {
       val url = URL(urlString)
       val connection = url.openConnection() as HttpURLConnection
@@ -64,13 +64,37 @@ object NetworkUtils {
         outputStream.flush()
 
         val responseCode = connection.responseCode
-        if (responseCode == HttpURLConnection.HTTP_OK) {
-          val inputStream = connection.inputStream
-          inputStream.bufferedReader().use { it.readText() }
-        } else {
-          // Lidar com erro na requisição
-          null
+
+        when (responseCode) {
+//          HttpURLConnection.HTTP_OK,
+          in 200..299 -> {
+            val inputStream = connection.inputStream
+            val gson = Gson()
+            val result: Map<String, Any> = gson.fromJson(
+              inputStream.bufferedReader().use { it.readText() },
+              Map::class.java
+            ) as Map<String, Any>
+            result
+          }
+          else -> {
+            // Handle error in the request
+            null
+          }
         }
+
+//        if (responseCode == HttpURLConnection.HTTP_OK) {
+//          val inputStream = connection.inputStream
+////          inputStream.bufferedReader().use { it.readText() }
+//          val gson = Gson() // Create a Gson instance
+//          val result: Map<String, Any> = gson.fromJson(
+//            inputStream.bufferedReader().use { it.readText() },
+//            Map::class.java
+//          ) as Map<String, Any>
+//          result
+//        } else {
+//          // Lidar com erro na requisição
+//          null
+//        }
       } finally {
         connection.disconnect()
       }

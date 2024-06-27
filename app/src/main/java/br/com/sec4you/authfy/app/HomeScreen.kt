@@ -95,7 +95,6 @@ fun HomeScreen(
   modifier: Modifier = Modifier,
   navController: NavController,
   authenticated: Boolean,
-  onUserInfoClick: () -> Unit,
   onLogoutClick: () -> Unit,
   authStateManager: AuthStateManager
 ) {
@@ -121,7 +120,7 @@ fun HomeScreen(
 //    HeaderPanel(onUserInfoClick = { })
     HeaderPanel(modifier, authStateManager)
     MenuPanel(navController, authStateManager)
-    ContentPanel()
+    ContentPanel(authStateManager = authStateManager)
     Spacer(modifier = Modifier.weight(1.0f)) // fill height with spacer
 //    Text(
 //      text = authStateManager.authState.accessToken.toString()
@@ -146,9 +145,8 @@ fun HomeScreenPreview() {
       HomeScreen(
         navController = rememberNavController(),
         authenticated = true,
-        onUserInfoClick = {},
         onLogoutClick = {},
-        authStateManager = AuthStateManager(null, null))
+        authStateManager = AuthStateManager(null, null, null))
     }
   }
 }

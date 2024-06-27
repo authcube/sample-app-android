@@ -9,8 +9,10 @@ import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -46,6 +48,10 @@ fun HeaderPanel(modifier: Modifier = Modifier, authStateManager: AuthStateManage
   val TAG = "AUTHFY:HEADER"
   val context = LocalContext.current
 
+  var isRequesting by remember {
+    mutableStateOf(false)
+  }
+
   val coroutineScope = rememberCoroutineScope()
   var userInfoText by remember {
     mutableStateOf("Click 'Get User Info' to fetch the 'username'")
@@ -78,6 +84,7 @@ fun HeaderPanel(modifier: Modifier = Modifier, authStateManager: AuthStateManage
               return@AuthStateAction
             }
 
+            isRequesting = true
             userInfoText = "Fetching user info..."
 
             // use the access token to do something ...
@@ -95,6 +102,8 @@ fun HeaderPanel(modifier: Modifier = Modifier, authStateManager: AuthStateManage
                 userInfoText = "Error getting userinfo"
                 Log.e(TAG, "Error making request to server, [result is NULL]")
               }
+
+              isRequesting = false
             }
           }
         )
@@ -102,9 +111,11 @@ fun HeaderPanel(modifier: Modifier = Modifier, authStateManager: AuthStateManage
       },
       shape = RoundedCornerShape(25),
     ) {
-      Text(
-        text = "Get User Info"
-      )
+      if ( isRequesting ) {
+        CircularProgressIndicator(modifier = Modifier.size(20.dp))
+      } else {
+      Text( text = "Get User Info" )
+      }
     }
     Text(
       modifier = Modifier.padding(top = 10.dp),
@@ -119,7 +130,7 @@ fun HomeHeaderPanelPreview() {
   AuthfySampleTheme {
     Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
 //      HeaderPanel(onUserInfoClick = {})
-      HeaderPanel(authStateManager = AuthStateManager(null, null))
+      HeaderPanel(authStateManager = AuthStateManager(null, null, null))
     }
   }
 }

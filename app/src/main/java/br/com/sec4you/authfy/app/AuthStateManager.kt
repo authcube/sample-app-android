@@ -1,17 +1,28 @@
 package br.com.sec4you.authfy.app
 
+import android.content.Context
 import android.content.SharedPreferences
 import android.util.Log
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import br.com.sec4you.authfy.sdk.AuthfySdk
 import net.openid.appauth.AuthState
 import org.json.JSONException
 import java.util.concurrent.locks.ReentrantLock
 
 class AuthStateManager(
   private val mPrefs: SharedPreferences?,
-  private val mPrefsLock: ReentrantLock?
+  private val mPrefsLock: ReentrantLock?,
+  private val context: Context?
 ) {
 
-  val authState: AuthState = AuthState()
+  val authState: AuthState by lazy {
+    readState()
+  }
+
+  val authfySdk: AuthfySdk by lazy {
+      AuthfySdk(context)
+    }
 
   private val KEY_STATE = "state"
 

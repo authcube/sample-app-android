@@ -101,7 +101,7 @@ fun HomeMenuuPanelPreview() {
 
     Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
       MenuPanel(navController = rememberNavController(),
-        authStateManager = AuthStateManager(null, null)
+        authStateManager = AuthStateManager(null, null, null)
       )
     }
   }

@@ -34,6 +34,7 @@ import net.openid.appauth.AuthorizationService
 import net.openid.appauth.AuthorizationService.TokenResponseCallback
 import net.openid.appauth.AuthorizationServiceConfiguration
 import net.openid.appauth.ResponseTypeValues
+import java.util.Date
 
 
 @Composable
@@ -56,7 +57,6 @@ fun AuthScreen(
     navController.navigate(Screen.HomeScreen.route)
     return
   }
-
 
   // Create an ActivityResultLauncher to handle the result
   val launcher = rememberLauncherForActivityResult(
@@ -147,10 +147,6 @@ fun AuthScreen(
                     // ... continue com o seu fluxo de autenticação
                     val authIntent = authService.getAuthorizationRequestIntent(authRequestBuilder)
 
-//                    if (_activity != null) {
-//                      startActivityForResult(_activity, authIntent, RC_AUTH, null)
-//                    }
-
                     launcher.launch(authIntent)
 
                   }
@@ -176,7 +172,8 @@ fun AuthScreenPreview() {
         navController = rememberNavController(),
         authenticated = false,
         onAuthenticatedChange = { },
-        authStateManager = AuthStateManager(null, null))
+        authStateManager = AuthStateManager(null, null, null)
+      )
     }
   }
 }

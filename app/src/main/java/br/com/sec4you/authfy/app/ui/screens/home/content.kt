@@ -32,9 +32,11 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -48,11 +50,18 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.compose.rememberNavController
+import br.com.sec4you.authfy.app.AuthStateManager
 import br.com.sec4you.authfy.app.DEBUG_IS_ENABLED
 import br.com.sec4you.authfy.app.HomeScreen
 import br.com.sec4you.authfy.app.conditional
 import br.com.sec4you.authfy.app.isDebugEnabled
 import br.com.sec4you.authfy.app.ui.theme.AuthfySampleTheme
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
+import java.time.LocalTime
+import java.util.Calendar
 
 
 @Composable
@@ -126,7 +135,9 @@ fun OtpValue(modifier: Modifier = Modifier, value: String) {
     )
     Spacer(modifier = Modifier.weight(1.0f)) // fill height with spacer
     Button(
-      onClick = {},
+      onClick = {
+//        value = authStateManager.authfySdk.generateTOTP()
+      },
       shape = CircleShape,
       modifier = modifier
         .size(30.dp),
@@ -142,23 +153,31 @@ fun OtpValue(modifier: Modifier = Modifier, value: String) {
 }
 
 @Composable
-fun OtpCountdown(modifier: Modifier = Modifier) {
-  var currentProgress by remember { mutableStateOf(0.5f) }
+fun OtpCountdown(modifier: Modifier = Modifier, progressValue: Float) {
+//  var currentProgress by remember { mutableStateOf(0.5f) }
   val shape = RoundedCornerShape(8.dp)
+
+  // 10 segundos restantes (1/3 do progresso) muda cor para vermelho
+  val barColor = if (progressValue <= 0.33f) {
+    Color.Red
+  } else {
+    MaterialTheme.colorScheme.primary
+  }
 
   Box(
     modifier = modifier
       .padding(horizontal = 35.dp, vertical = 15.dp)
       .background(
-        color = MaterialTheme.colorScheme.primary,
+        color = barColor,
         shape = shape,
       )
       .clip(shape),
   ) {
-    LinearProgressIndicator(currentProgress,
+    LinearProgressIndicator(progressValue,
       modifier = Modifier
         .fillMaxWidth()
         .height(16.dp),
+        color = barColor
 //      trackCornerRadius = 10.p
     )
   }
@@ -166,8 +185,48 @@ fun OtpCountdown(modifier: Modifier = Modifier) {
 
 @RequiresApi(Build.VERSION_CODES.M)
 @Composable
-fun ContentPanel(modifier: Modifier = Modifier) {
-  var otpValue by remember { mutableStateOf("852123") }
+fun ContentPanel(modifier: Modifier = Modifier, authStateManager: AuthStateManager) {
+  var otpValue by remember {
+//    mutableStateOf("852123")
+    mutableStateOf("")
+  }
+  var progressValue by remember {
+    mutableStateOf(1.0f)
+  }
+
+  // timer ticker
+  val coroutineScope = rememberCoroutineScope()
+  LaunchedEffect(Unit) {
+    coroutineScope.launch(Dispatchers.IO) { // Executa em uma thread de background
+      while (isActive) { // Verifica se o composable ainda está ativo
+        delay(1000)
+
+        if ( ! authStateManager.authfySdk.hasSeed() ) {
+          progressValue = 0f
+          otpValue = ""
+          return@launch
+        }
+
+        if ( otpValue == "" ) {
+          otpValue = authStateManager.authfySdk.generateTOTP()
+        }
+
+        // Verifica se os segundos são 0 ou 30
+        val calendar = Calendar.getInstance()
+        val seconds = calendar.get(Calendar.SECOND)
+        if (seconds in listOf(0, 30)) {
+          // Dispara suas ações aqui (em background)
+          otpValue = authStateManager.authfySdk.generateTOTP()
+        }
+
+        // Calcula o progresso com base na diferença
+        progressValue = when {
+          seconds < 30 -> (30 - seconds) / 30f // Progresso de 0 a 1 para segundos 0-29
+          else -> (60 - seconds) / 30f // Progresso de 1 a 0 para segundos 30-59
+        }
+      }
+    }
+  }
 
   Column(
     verticalArrangement = Arrangement.Center,
@@ -181,7 +240,7 @@ fun ContentPanel(modifier: Modifier = Modifier) {
   ) {
     Column() {
       OtpValue(value = otpValue)
-      OtpCountdown()
+      OtpCountdown(progressValue = progressValue)
       OtpTextField(onValueChanged = { otpValue = it })
     }
   }
@@ -193,7 +252,7 @@ fun ContentPanel(modifier: Modifier = Modifier) {
 fun HomeContentPanelPreview() {
   AuthfySampleTheme {
     Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-      ContentPanel()
+      ContentPanel(authStateManager = AuthStateManager(null, null, null))
     }
   }
 }

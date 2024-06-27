@@ -11,6 +11,7 @@ import androidx.compose.runtime.setValue
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import br.com.sec4you.authfy.sdk.AuthfySdk
 import java.util.concurrent.locks.ReentrantLock
 
 
@@ -29,11 +30,9 @@ fun AuthyNavigator(route: String = Screen.MainScreen.route) {
   var mPrefsLock: ReentrantLock = remember {
     ReentrantLock()
   }
-//  val authState: MutableState<AuthState> = remember {
-//    mutableStateOf(AuthState())
-//  }
+
   val authStateManager: AuthStateManager = remember {
-    AuthStateManager(mPrefs, mPrefsLock)
+    AuthStateManager(mPrefs, mPrefsLock, navController.context)
   }
 
   var authenticated by remember { mutableStateOf(false) }
@@ -63,7 +62,6 @@ fun AuthyNavigator(route: String = Screen.MainScreen.route) {
       HomeScreen(
         navController = navController,
         authenticated = authenticated,
-        onUserInfoClick = { },
         onLogoutClick = { changeAuthenticateState(false) },
         authStateManager = authStateManager
       )

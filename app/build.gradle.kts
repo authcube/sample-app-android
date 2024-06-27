@@ -74,4 +74,8 @@ dependencies {
   //appauth-android
   implementation("net.openid:appauth:0.11.1")
 
+  // authfy-sdk
+//  implementation fileTree(dir: 'libs', includes: ['*.aar'])
+  implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar", "*.aar"))))
+
 }

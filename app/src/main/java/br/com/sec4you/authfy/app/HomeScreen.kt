@@ -74,7 +74,7 @@ fun HomeScreen(
   modifier: Modifier = Modifier,
   navController: NavController,
   authenticated: Boolean,
-  onAuthenticatedChange: () -> Unit,
+  onAuthenticatedChange: (Boolean) -> Unit,
   authStateManager: AuthStateManager
 ) {
   var TAG = "AUTHFY:SC:HO"

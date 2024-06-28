@@ -34,7 +34,6 @@ import br.com.sec4you.authfy.app.conditional
 import br.com.sec4you.authfy.app.isDebugEnabled
 import br.com.sec4you.authfy.app.ui.theme.AuthfySampleTheme
 import br.com.sec4you.authfy.app.ui.theme.LogoutButtonBackground
-import net.openid.appauth.AuthState
 import net.openid.appauth.AuthorizationService
 import net.openid.appauth.AuthorizationServiceConfiguration
 import net.openid.appauth.EndSessionRequest

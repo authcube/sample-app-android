@@ -62,7 +62,7 @@ fun AuthyNavigator(route: String = Screen.MainScreen.route) {
       HomeScreen(
         navController = navController,
         authenticated = authenticated,
-        onAuthenticatedChange = { changeAuthenticateState(false) },
+        onAuthenticatedChange = { changeAuthenticateState(it) },
         authStateManager = authStateManager
       )
     }

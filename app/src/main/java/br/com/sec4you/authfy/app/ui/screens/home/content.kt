@@ -1,6 +1,10 @@
 package br.com.sec4you.authfy.app.ui.screens.home
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -23,11 +27,15 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Done
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -43,6 +51,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
@@ -53,6 +62,7 @@ import androidx.navigation.compose.rememberNavController
 import br.com.sec4you.authfy.app.AuthStateManager
 import br.com.sec4you.authfy.app.DEBUG_IS_ENABLED
 import br.com.sec4you.authfy.app.HomeScreen
+import br.com.sec4you.authfy.app.NetworkUtils
 import br.com.sec4you.authfy.app.conditional
 import br.com.sec4you.authfy.app.isDebugEnabled
 import br.com.sec4you.authfy.app.ui.theme.AuthfySampleTheme
@@ -60,15 +70,38 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import net.openid.appauth.AuthState.AuthStateAction
+import net.openid.appauth.AuthorizationService
 import java.time.LocalTime
 import java.util.Calendar
 
 
 @Composable
-fun OtpTextField(modifier: Modifier = Modifier, maxLength: Int = 6, onValueChanged: (String) -> Unit = {}) {
+fun OtpTextField(modifier: Modifier = Modifier, maxLength: Int = 6, authStateManager: AuthStateManager) {
+
+  val context = LocalContext.current
+  val TAG = "AUTHFY:ContentPanel"
+
+  val coroutineScope = rememberCoroutineScope()
+  val snackbarHostState = remember { SnackbarHostState() }
+
+  var isRequesting by remember {
+    mutableStateOf(false)
+  }
+  val authService = remember {
+    AuthorizationService(context)
+  }
+
+
   var value by remember {
     mutableStateOf(TextFieldValue(text = ""))
   }
+
+  Row {
+    SnackbarHost(hostState = snackbarHostState)
+  }
+
+
   Row(
     verticalAlignment = Alignment.CenterVertically,
     horizontalArrangement = Arrangement.SpaceBetween,
@@ -102,20 +135,84 @@ fun OtpTextField(modifier: Modifier = Modifier, maxLength: Int = 6, onValueChang
     )
     Button(
       onClick = {
-        onValueChanged(value.text.substring(0, 6))
+        //
+        val verifyOTPEndpoint = "https://demo.authfy.tech/sample-app/mfa/totp/verify"
+
+        // do post
+        authStateManager.authState.performActionWithFreshTokens(authService,
+          AuthStateAction { accessToken, idToken, ex ->
+            if (ex != null) {
+              // negotiation for fresh tokens failed, check ex for more details
+              Log.e(TAG, "Error getting a fresh token", ex)
+              return@AuthStateAction
+            }
+
+            isRequesting = true
+
+            // use the access token to do something ...
+            val headers = mapOf(
+              "Content-Type" to "application/json",
+              "Authorization" to "Bearer $accessToken"
+            )
+
+            val body = "{\"verbose\": false, \"otp\": \"${value.text}\"}"
+
+            coroutineScope.launch {
+
+              var resultMessage = "Código Válido"
+
+              val result = NetworkUtils.doPost(verifyOTPEndpoint, headers, body)
+
+              if (result != null) {
+
+                val contents = result["contents"] as? List<Map<String, Any>>
+                val targetValue = contents?.find { content ->
+                  (content["rel"] as? List<String>)?.contains("urn:mfao:totp:verify:status")
+                    ?: false
+                }?.get("values") as? List<String>
+
+                val res = targetValue?.firstOrNull()
+                val isValidCode = targetValue?.firstOrNull() in listOf("success", "true", "1")
+                resultMessage = if (isValidCode) "Código Válido" else "Código Inválido"
+
+              } else {
+                resultMessage = "Código Inválido"
+                Log.e(TAG, "Error sending request to server, [result is NULL]")
+              }
+
+              isRequesting = false
+
+              snackbarHostState.showSnackbar(
+                message = resultMessage,
+                duration = SnackbarDuration.Short
+              )
+
+            }
+          }
+        )
+        //
+
       },
       shape = RoundedCornerShape(25),
       modifier = modifier
     ) {
-      Text(
-        text = "Verify"
-      )
+      if ( isRequesting ) {
+        CircularProgressIndicator(modifier =
+          Modifier.size(20.dp),
+          color = Color.White
+        )
+      } else {
+        Text(
+          text = "Verify"
+        )
+      }
     }
   }
 }
 
 @Composable
-fun OtpValue(modifier: Modifier = Modifier, value: String) {
+fun OtpValue(modifier: Modifier = Modifier, value: String, copyOtpClick: () -> Unit) {
+
   Row(
     verticalAlignment = Alignment.CenterVertically,
     modifier = modifier
@@ -136,7 +233,7 @@ fun OtpValue(modifier: Modifier = Modifier, value: String) {
     Spacer(modifier = Modifier.weight(1.0f)) // fill height with spacer
     Button(
       onClick = {
-//        value = authStateManager.authfySdk.generateTOTP()
+        copyOtpClick()
       },
       shape = CircleShape,
       modifier = modifier
@@ -186,6 +283,13 @@ fun OtpCountdown(modifier: Modifier = Modifier, progressValue: Float) {
 @RequiresApi(Build.VERSION_CODES.M)
 @Composable
 fun ContentPanel(modifier: Modifier = Modifier, authStateManager: AuthStateManager) {
+
+  val context = LocalContext.current
+  val TAG = "AUTHFY:ContentPanel"
+
+  val clipboardManager = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+  val snackbarHostState = remember { SnackbarHostState() }
+
   var otpValue by remember {
 //    mutableStateOf("852123")
     mutableStateOf("")
@@ -239,11 +343,25 @@ fun ContentPanel(modifier: Modifier = Modifier, authStateManager: AuthStateManag
       })
   ) {
     Column() {
-      OtpValue(value = otpValue)
+      OtpValue(value = otpValue, copyOtpClick = {
+
+        val clipData = ClipData.newPlainText("label", otpValue)
+        clipboardManager.setPrimaryClip(clipData)
+
+        coroutineScope.launch {
+          snackbarHostState.showSnackbar(
+            message = "Código copiado!",
+            duration = SnackbarDuration.Short
+          )
+        }
+
+      })
       OtpCountdown(progressValue = progressValue)
-      OtpTextField(onValueChanged = { otpValue = it })
+      OtpTextField(authStateManager = authStateManager)
     }
   }
+
+  SnackbarHost(hostState = snackbarHostState)
 }
 
 @RequiresApi(Build.VERSION_CODES.M)

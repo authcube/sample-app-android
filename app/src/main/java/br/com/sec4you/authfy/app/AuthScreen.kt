@@ -104,15 +104,15 @@ fun AuthScreen(
       modifier = Modifier.fillMaxWidth(),
       horizontalArrangement = Arrangement.SpaceBetween
     ) {
-      Button(
-        onClick = {
-          navController.navigate(Screen.MainScreen.route)
-        }
-      ) {
-        Text(
-          text = "Back"
-        )
-      }
+//      Button(
+//        onClick = {
+//          navController.navigate(Screen.MainScreen.route)
+//        }
+//      ) {
+//        Text(
+//          text = "Back"
+//        )
+//      }
       Button(
         onClick = {
           // https://newpst.authfy.tech/demo/connect

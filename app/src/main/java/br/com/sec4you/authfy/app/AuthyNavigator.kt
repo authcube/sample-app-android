@@ -17,7 +17,8 @@ import java.util.concurrent.locks.ReentrantLock
 
 @SuppressLint("NewApi")
 @Composable
-fun AuthyNavigator(route: String = Screen.MainScreen.route) {
+//fun AuthyNavigator(route: String = Screen.MainScreen.route) {
+fun AuthyNavigator(route: String = Screen.AuthScreen.route) {
   val navController = rememberNavController()
 
   val TAG = "AUTHFY::NavController"
@@ -41,7 +42,8 @@ fun AuthyNavigator(route: String = Screen.MainScreen.route) {
     if (state) {
       navController.navigate(Screen.HomeScreen.route)
     } else {
-      navController.navigate(Screen.MainScreen.route)
+//      navController.navigate(Screen.MainScreen.route)
+      navController.navigate(Screen.AuthScreen.route)
     }
   }
 

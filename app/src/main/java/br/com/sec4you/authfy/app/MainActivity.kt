@@ -36,6 +36,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun AuthfyNavigatorPreview() {
   AuthfySampleTheme {
-    AuthyNavigator(Screen.MainScreen.route)
+//    AuthyNavigator(Screen.MainScreen.route)
+    AuthyNavigator(Screen.AuthScreen.route)
   }
 }

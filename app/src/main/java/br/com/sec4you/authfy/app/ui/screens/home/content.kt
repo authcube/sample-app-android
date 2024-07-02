@@ -117,7 +117,7 @@ fun OtpTextField(modifier: Modifier = Modifier, maxLength: Int = 6, authStateMan
         .width(280.dp)
         .padding(horizontal = 20.dp),
       label = {
-        Text("Type the OTP")
+        Text("Type the code")
       },
       textStyle = LocalTextStyle.current.copy(
         textAlign = TextAlign.Center,
@@ -236,7 +236,7 @@ fun OtpValue(modifier: Modifier = Modifier, value: String, copyOtpClick: () -> U
         copyOtpClick()
       },
       shape = CircleShape,
-      modifier = modifier
+      modifier = modifier.padding(20.dp)
         .size(30.dp),
       contentPadding = PaddingValues(1.dp)
     ) {

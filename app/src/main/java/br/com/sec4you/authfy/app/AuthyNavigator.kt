@@ -52,6 +52,7 @@ fun AuthyNavigator(route: String = Screen.AuthScreen.route) {
     composable(route = Screen.MainScreen.route) {
       LoginScreen(navController = navController, authenticated = authenticated, authStateManager = authStateManager)
     }
+
     composable(route = Screen.AuthScreen.route) {
       AuthScreen(
         navController = navController,
@@ -60,6 +61,7 @@ fun AuthyNavigator(route: String = Screen.AuthScreen.route) {
         authStateManager = authStateManager
       )
     }
+
     composable(route = Screen.HomeScreen.route) {
       HomeScreen(
         navController = navController,

@@ -69,8 +69,13 @@ fun AuthScreen(
     // Handle the result here
     val res = result.data?.let { AuthorizationResponse.fromIntent(it) }
 
+    if ( res == null ) {
+      onAuthenticatedChange(false)
+      return@rememberLauncherForActivityResult
+    }
+
     authService.performTokenRequest(
-      res!!.createTokenExchangeRequest(),
+      res.createTokenExchangeRequest(),
       TokenResponseCallback { resp, ex ->
         if (resp != null) {
           // exchange succeeded
@@ -95,9 +100,10 @@ fun AuthScreen(
   ) {
     Text(
       modifier = Modifier
-        .fillMaxWidth()
-        .background(Color(112, 112, 112)),
-      text = "Auth"
+        .fillMaxWidth(),
+//        .background(Color.Gray),
+      color = Color.White,
+      text = "You not authenticated yet. Please click on Login button to start"
     )
 
     Row(
@@ -156,7 +162,7 @@ fun AuthScreen(
         }
       ) {
         Text(
-          text = "Home"
+          text = "Login"
         )
       }
     }

@@ -80,7 +80,8 @@ fun HomeScreen(
   var TAG = "AUTHFY:SC:HO"
 
   if (!authenticated) {
-    navController.navigate(Screen.MainScreen.route)
+//    navController.navigate(Screen.MainScreen.route)
+    navController.navigate(Screen.AuthScreen.route)
     return
   }
 

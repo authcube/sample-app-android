@@ -10,9 +10,11 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
+        flatDir {
+          dirs("libs")
+        }
     }
 }
 
 rootProject.name = "Authfy Sample"
 include(":app")
- 

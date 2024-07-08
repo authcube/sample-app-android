@@ -1,5 +1,11 @@
 package br.com.sec4you.authfy.app
 
+import android.app.Activity
+import android.net.Uri
+import android.util.Log
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.ActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -12,6 +18,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
@@ -19,45 +27,142 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import br.com.sec4you.authfy.app.ui.theme.AuthfySampleTheme
+import net.openid.appauth.AuthorizationException
+import net.openid.appauth.AuthorizationRequest
+import net.openid.appauth.AuthorizationResponse
+import net.openid.appauth.AuthorizationService
+import net.openid.appauth.AuthorizationService.TokenResponseCallback
+import net.openid.appauth.AuthorizationServiceConfiguration
+import net.openid.appauth.ResponseTypeValues
+import java.util.Date
+
 
 @Composable
 fun AuthScreen(
   navController: NavController,
   authenticated: Boolean,
-  onAuthenticatedChange: (Boolean) -> Unit
+  onAuthenticatedChange: (Boolean) -> Unit,
+  authStateManager: AuthStateManager
 ) {
+
+  val context = navController.context
+
+  val authService = remember {
+    AuthorizationService(context)
+  }
+
+  val TAG = "AUTHFY:AuthScreen"
+
   if (authenticated) {
     navController.navigate(Screen.HomeScreen.route)
     return
   }
 
+  // Create an ActivityResultLauncher to handle the result
+  val launcher = rememberLauncherForActivityResult(
+    contract = ActivityResultContracts.StartActivityForResult()
+  ) { result: ActivityResult ->
+    if (result.resultCode != Activity.RESULT_OK) {
+      onAuthenticatedChange(false)
+    }
+
+    // Handle the result here
+    val res = result.data?.let { AuthorizationResponse.fromIntent(it) }
+
+    if ( res == null ) {
+      onAuthenticatedChange(false)
+      return@rememberLauncherForActivityResult
+    }
+
+    authService.performTokenRequest(
+      res.createTokenExchangeRequest(),
+      TokenResponseCallback { resp, ex ->
+        if (resp != null) {
+          // exchange succeeded
+          authStateManager.authState.update(resp, ex)
+          authStateManager.saveState()
+          onAuthenticatedChange(true)
+        } else {
+          // authorization failed, check ex for more details
+          onAuthenticatedChange(false)
+        }
+      })
+
+  }
+
+
   Column(
-    verticalArrangement = Arrangement.Center,
+    verticalArrangement = Arrangement.spacedBy(15.dp, alignment = Alignment.CenterVertically),
     modifier = Modifier
       .fillMaxWidth()
       .background(Color.DarkGray)
       .padding(horizontal = 50.dp)
   ) {
     Text(
-      text = "Auth"
+      modifier = Modifier
+        .fillMaxWidth(),
+//        .background(Color.Gray),
+      color = Color.White,
+      text = "You not authenticated yet. Please click on Login button to start"
     )
-    Row() {
+
+    Row(
+      modifier = Modifier.fillMaxWidth(),
+      horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+//      Button(
+//        onClick = {
+//          navController.navigate(Screen.MainScreen.route)
+//        }
+//      ) {
+//        Text(
+//          text = "Back"
+//        )
+//      }
       Button(
         onClick = {
-          navController.navigate(Screen.MainScreen.route)
+          // https://newpst.authfy.tech/demo/connect
+          val serviceDiscoveryUri = Uri.parse("https://demo.authfy.tech/sample-app/connect")
+
+          AuthorizationServiceConfiguration.fetchFromIssuer(
+            serviceDiscoveryUri,
+            object : AuthorizationServiceConfiguration.RetrieveConfigurationCallback {
+              override fun onFetchConfigurationCompleted(
+                serviceConfiguration: AuthorizationServiceConfiguration?,
+                ex: AuthorizationException?
+              ) {
+                if (ex != null) {
+                  Log.e(TAG, "Failed to retrieve configuration", ex)
+                  // Trate o erro aqui (exiba mensagem, etc.)
+                } else {
+                  serviceConfiguration?.let { config ->
+                    // Armazene o serviceConfiguration para uso posterior
+                    // Exemplo: SharedPreferences, ViewModel, etc.
+
+                    // Use a configuração aqui
+                    val authRequestBuilder = AuthorizationRequest.Builder(
+                      config, // <- Seu serviceConfiguration
+                      "VYMLshT2E4gGZPdpH53slwh7",
+                      ResponseTypeValues.CODE,
+                      Uri.parse("br.com.sec4you.authfy.app.appsample:/oauth2redirect")
+                    )
+                      .setScope("openid email profile roles")
+                      .setLoginHint("jdoe@user.example.com")
+                      .build()
+
+                    // ... continue com o seu fluxo de autenticação
+                    val authIntent = authService.getAuthorizationRequestIntent(authRequestBuilder)
+
+                    launcher.launch(authIntent)
+
+                  }
+                }
+              }
+            })
         }
       ) {
         Text(
-          text = "Back"
-        )
-      }
-      Button(
-        onClick = {
-          onAuthenticatedChange(true)
-        }
-      ) {
-        Text(
-          text = "Home"
+          text = "Login"
         )
       }
     }
@@ -72,7 +177,9 @@ fun AuthScreenPreview() {
       AuthScreen(
         navController = rememberNavController(),
         authenticated = false,
-        onAuthenticatedChange = { })
+        onAuthenticatedChange = { },
+        authStateManager = AuthStateManager(null, null, null)
+      )
     }
   }
 }

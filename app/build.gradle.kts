@@ -65,4 +65,17 @@ dependencies {
   debugImplementation("androidx.compose.ui:ui-tooling")
   debugImplementation("androidx.compose.ui:ui-test-manifest")
   implementation("androidx.navigation:navigation-compose:2.7.7")
+
+  // corotines for http call
+  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4")
+  // to parse the response
+  implementation("com.google.code.gson:gson:2.10.1")
+
+  //appauth-android
+  implementation("net.openid:appauth:0.11.1")
+
+  // authfy-sdk
+//  implementation fileTree(dir: 'libs', includes: ['*.aar'])
+  implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar", "*.aar"))))
+
 }

@@ -10,7 +10,13 @@ val Purple40 = Color(0xFF6650a4)
 val PurpleGrey40 = Color(0xFF625b71)
 val Pink40 = Color(0xFF7D5260)
 
-val LightBackground = Color(0xFFf0f8ff)
-val DarkBackground = Color(0xFF242525)
+val LightBackground = Color(0xffffffff)
+val DarkBackground = Color(0xffffffff)
+
+val Background = Color(0xFFFFFFFF)
+val GrayTxt = Color (0xFF7f7f7f)
+
+val BtnBg = Color(0xFF333333)
+val BtnTxt = Color(0xFFF4F6F8)
 
 val LogoutButtonBackground = Color(0xFFC01D1D)

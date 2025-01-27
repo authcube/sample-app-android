@@ -75,7 +75,7 @@ import net.openid.appauth.AuthorizationService
 import java.time.LocalTime
 import java.util.Calendar
 
-
+/*
 @Composable
 fun OtpTextField(modifier: Modifier = Modifier, maxLength: Int = 6, authStateManager: AuthStateManager) {
 
@@ -374,3 +374,4 @@ fun HomeContentPanelPreview() {
     }
   }
 }
+*/

@@ -38,7 +38,7 @@ import kotlinx.coroutines.launch
 import net.openid.appauth.AuthState.AuthStateAction
 import net.openid.appauth.AuthorizationService
 
-
+/*
 @Composable
 fun SeedsScreen(navController: NavHostController, authStateManager: AuthStateManager) {
 
@@ -242,3 +242,4 @@ fun SeedsScreenPreview() {
     }
   }
 }
+*/

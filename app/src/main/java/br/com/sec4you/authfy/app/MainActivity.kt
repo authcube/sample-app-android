@@ -24,7 +24,7 @@ class MainActivity : ComponentActivity() {
       AuthfySampleTheme {
         // A surface container using the 'background' color from the theme
         Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-          AuthyNavigator()
+          AuthyNavigator(Screen.SplashScreen.route)
         }
       }
     }
@@ -37,6 +37,6 @@ class MainActivity : ComponentActivity() {
 fun AuthfyNavigatorPreview() {
   AuthfySampleTheme {
 //    AuthyNavigator(Screen.MainScreen.route)
-    AuthyNavigator(Screen.AuthScreen.route)
+    AuthyNavigator(Screen.SplashScreen.route)
   }
 }

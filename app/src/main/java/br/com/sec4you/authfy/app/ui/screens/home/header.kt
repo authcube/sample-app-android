@@ -39,8 +39,7 @@ import net.openid.appauth.AuthorizationService
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 
-
-
+/*
 @Composable
 //fun HeaderPanel(modifier: Modifier = Modifier, onUserInfoClick: () -> Unit = {}) {
 fun HeaderPanel(modifier: Modifier = Modifier, authStateManager: AuthStateManager) {
@@ -75,7 +74,6 @@ fun HeaderPanel(modifier: Modifier = Modifier, authStateManager: AuthStateManage
     Button(
 //      onClick = { onUserInfoClick() },
       onClick = {
-
         authStateManager.authState.performActionWithFreshTokens(authService,
           AuthStateAction { accessToken, idToken, ex ->
             if (ex != null) {
@@ -134,3 +132,4 @@ fun HomeHeaderPanelPreview() {
     }
   }
 }
+ */

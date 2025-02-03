@@ -11,7 +11,11 @@ import androidx.compose.runtime.setValue
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import br.com.sec4you.authfy.sdk.AuthfySdk
+import br.com.sec4you.authfy.app.ui.screens.connect.TokensScreen
+import br.com.sec4you.authfy.app.ui.screens.risk.DeviceInformation
+import br.com.sec4you.authfy.app.ui.screens.risk.Evaluate
+import br.com.sec4you.authfy.app.ui.screens.strong.TOTP
+import net.openid.appauth.AuthorizationService
 import java.util.concurrent.locks.ReentrantLock
 
 
@@ -21,7 +25,7 @@ import java.util.concurrent.locks.ReentrantLock
 fun AuthyNavigator(route: String = Screen.AuthScreen.route) {
   val navController = rememberNavController()
 
-  val TAG = "AUTHFY::NavController"
+  val TAG = "AUTHCUBE::NavController"
 
   val STORE_NAME = "AuthState"
   var mPrefs: SharedPreferences = remember {
@@ -71,8 +75,56 @@ fun AuthyNavigator(route: String = Screen.AuthScreen.route) {
       )
     }
 
-    composable(route = Screen.SeedsScreen.route) {
-      SeedsScreen(
+    composable(route = Screen.ConfigScreen.route) {
+      ConfigScreen(navController = navController)
+    }
+
+    composable(route = Screen.SplashScreen.route) {
+      SplashScreen(navController = navController)
+    }
+
+    composable(route = Screen.StartScreen.route) {
+      StartScreen(navController = navController)
+    }
+
+    composable(route = Screen.RiskScreen.route) {
+      RiskScreen(navController = navController)
+    }
+
+    composable(route = Screen.DeviceInfoScreen.route) {
+      DeviceInformation(
+        navController = navController,
+        authStateManager = authStateManager
+      )
+    }
+
+    composable(route = Screen.EvaluateScreen.route) {
+      Evaluate(
+        navController = navController,
+        authStateManager = authStateManager
+      )
+    }
+
+    composable(route = Screen.ConnectScreen.route) {
+      ConnectScreen(
+        navController = navController,
+        authStateManager = authStateManager
+      )
+    }
+
+    composable(route = Screen.TokensScreen.route) {
+      TokensScreen(
+        navController = navController,
+        authStateManager = authStateManager
+      )
+    }
+
+    composable(route = Screen.StrongScreen.route) {
+      StrongScreen(navController = navController)
+    }
+
+    composable(route = Screen.TOTPScreen.route) {
+      TOTP(
         navController = navController,
         authStateManager = authStateManager
       )

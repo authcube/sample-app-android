@@ -1,117 +1,131 @@
 package br.com.sec4you.authfy.app.ui.screens.home
 
-import android.app.Activity
-import android.content.Intent
-import android.net.Uri
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.ActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.border
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import br.com.sec4you.authfy.app.AuthStateManager
-import br.com.sec4you.authfy.app.conditional
-import br.com.sec4you.authfy.app.isDebugEnabled
+import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
+import br.com.sec4you.authfy.app.R
+import br.com.sec4you.authfy.app.Screen
 import br.com.sec4you.authfy.app.ui.theme.AuthfySampleTheme
-import br.com.sec4you.authfy.app.ui.theme.LogoutButtonBackground
-import net.openid.appauth.AuthorizationService
-import net.openid.appauth.AuthorizationServiceConfiguration
-import net.openid.appauth.EndSessionRequest
-import net.openid.appauth.EndSessionResponse
+import br.com.sec4you.authfy.app.ui.theme.BtnBg
 
 
 @Composable
-fun FooterPanel(
-  modifier: Modifier = Modifier,
-  authStateManager: AuthStateManager,
-  onAuthenticatedChange: (Boolean) -> Unit
-) {
-
-  val context = LocalContext.current
-  val authService = remember {
-    AuthorizationService(context)
-  }
-
-  val launcher = rememberLauncherForActivityResult(
-    contract = ActivityResultContracts.StartActivityForResult()
-  ) { result: ActivityResult ->
-
-    if (result.resultCode != Activity.RESULT_OK) {
-      return@rememberLauncherForActivityResult
-    }
-
-    // Handle the result here
-    val res = result.data?.let { EndSessionResponse.fromIntent(it) }
-
-    if ( res != null ) {
-      // logout success
-      onAuthenticatedChange(false)
-    }
-
-  }
-
-
-  Column(
-    verticalArrangement = Arrangement.Center,
-    horizontalAlignment = Alignment.CenterHorizontally,
-    modifier = modifier
-      .fillMaxWidth()
-      .defaultMinSize(minHeight = 100.dp)
-      .conditional(isDebugEnabled(), {
-        border(BorderStroke(2.dp, SolidColor(Color.Cyan)))
-      })
+fun HomeFooter(navController: NavController, currentRoute: String = "home") {
+  Row(
+    modifier = Modifier
+      .background(Color.White)
+      .padding(8.dp)
+      .fillMaxWidth(),
+    horizontalArrangement = Arrangement.Absolute.SpaceEvenly,
+    verticalAlignment = Alignment.CenterVertically
   ) {
-    Button(
-      colors = ButtonDefaults.buttonColors(containerColor = LogoutButtonBackground),
-      shape = RoundedCornerShape(25),
-      modifier = modifier
-        .size(width = 150.dp, height = 40.dp),
-      onClick = {
 
+    BottomNavItem(
+      icon = Icons.Filled.Home,
+      label = "Home",
+      isSelected = currentRoute == "home",
+      onClick = { navController.navigate(Screen.HomeScreen.route) }
+    )
 
-        val authState = authStateManager.authState
+    Spacer(modifier = Modifier.width(2.dp))
 
-        val authServiceConfig = AuthorizationServiceConfiguration(
-          authStateManager.authState.lastTokenResponse?.request?.configuration?.discoveryDoc!!
-        )
+    BottomNavItem(
+      icon = Icons.Filled.Warning,
+      label = "Risk",
+      isSelected = currentRoute == "risk",
+      onClick = { navController.navigate(Screen.RiskScreen.route) }
+    )
 
-        val endSessionRequest = EndSessionRequest.Builder(authServiceConfig)
-          .setIdTokenHint(authState.idToken)
-          .setPostLogoutRedirectUri(
-            Uri.parse("br.com.sec4you.authfy.app.appsample:/logoutredirect")
-          )
-          .build()
+    Spacer(modifier = Modifier.width(2.dp))
 
-        val endSessionItent: Intent = authService.getEndSessionRequestIntent(endSessionRequest)
-        launcher.launch(endSessionItent)
-
-
-      }
+    Column(
+      horizontalAlignment = Alignment.CenterHorizontally,
+      modifier = Modifier
+        .padding(8.dp)
+        .clickable(onClick = { navController.navigate(Screen.StrongScreen.route) })
     ) {
+      Icon(
+        painter = painterResource(id = R.drawable.key_vertical),
+        contentDescription = "Strong",
+        tint = if (currentRoute == "strong") BtnBg else Color.Gray,
+        modifier = Modifier.size(24.dp)
+      )
+      Spacer(modifier = Modifier.height(4.dp))
       Text(
-        text = "Logout"
+        text = "Strong",
+        color = if (currentRoute == "strong") BtnBg else Color.Gray,
+        style = MaterialTheme.typography.labelSmall,
+        fontSize = 12.sp
       )
     }
+
+
+    Spacer(modifier = Modifier.width(2.dp))
+
+    BottomNavItem(
+      icon = Icons.Filled.Person,
+      label = "Connect",
+      isSelected = currentRoute == "connect",
+      onClick = { navController.navigate(Screen.ConnectScreen.route) }
+    )
+  }
+}
+
+@Composable
+fun BottomNavItem(
+  icon: ImageVector,
+  label: String,
+  isSelected: Boolean,
+  onClick: () -> Unit
+) {
+  Column(
+    horizontalAlignment = Alignment.CenterHorizontally,
+    modifier = Modifier
+      .padding(8.dp)
+      .clickable(onClick = onClick)
+  ) {
+    Icon(
+      imageVector = icon,
+      contentDescription = label,
+      tint = if (isSelected) BtnBg else Color.Gray,
+      modifier = Modifier.size(24.dp)
+    )
+    Spacer(modifier = Modifier.height(4.dp))
+    Text(
+      text = label,
+      color = if (isSelected) BtnBg else Color.Gray,
+      style = MaterialTheme.typography.labelSmall,
+      fontSize = 12.sp
+    )
   }
 }
 
@@ -121,9 +135,7 @@ fun FooterPanel(
 fun HomeFooterPanelPreview() {
   AuthfySampleTheme {
     Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-      FooterPanel(
-        authStateManager = AuthStateManager(null, null, null),
-        onAuthenticatedChange = { })
+      HomeFooter(navController = rememberNavController())
     }
   }
 }

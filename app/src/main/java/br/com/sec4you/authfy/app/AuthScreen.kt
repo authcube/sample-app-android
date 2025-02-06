@@ -1,10 +1,13 @@
 package br.com.sec4you.authfy.app
 
+import android.Manifest
+import android.content.pm.PackageManager
 import android.app.Activity
 import android.content.Context
 import android.net.Uri
 import android.util.Base64
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -37,6 +40,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -50,6 +54,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import br.com.sec4you.authfy.app.ui.theme.AuthfySampleTheme
@@ -83,6 +88,71 @@ fun AuthScreen(
 
   val authService = remember { AuthorizationService(context) }
   var errorMessage by remember { mutableStateOf<String?>(null) }
+
+
+/* LOCATION */
+
+    // State to track if location permission is granted
+    val isLocationPermissionGranted = remember { mutableStateOf(false) }
+
+    // Function to get location (you'll implement this - same as in Activity example)
+    fun getLocation(context: android.content.Context) {
+        // Implement your location retrieval logic here using FusedLocationProviderClient etc.
+        // Make sure to use the 'context' passed to this function
+        Toast.makeText(context, "Getting Location... (AuthScreen)", Toast.LENGTH_SHORT).show()
+        // ... Location retrieval code (FusedLocationProviderClient) ...
+        // ... Remember to handle permission check *again* within getLocation() if necessary in more complex scenarios
+    }
+
+    // Launcher for requesting location permission
+    val locationPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (isGranted) {
+            isLocationPermissionGranted.value = true
+            Toast.makeText(context, "Location permission granted in AuthScreen", Toast.LENGTH_SHORT).show()
+            getLocation(context) // Call function to get location after permission is granted
+        } else {
+            isLocationPermissionGranted.value = false
+            Toast.makeText(context, "Location permission denied in AuthScreen", Toast.LENGTH_SHORT).show()
+            // Handle permission denial scenario - maybe explain why location is needed for some features
+        }
+    }
+
+    // Function to check location permission
+    fun checkLocationPermission() {
+        if (ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
+            isLocationPermissionGranted.value = true
+            Toast.makeText(context, "Location permission already granted in AuthScreen", Toast.LENGTH_SHORT).show()
+            getLocation(context) // Permission already granted, get location directly
+        } else {
+            isLocationPermissionGranted.value = false // Not strictly needed, but for clarity
+        }
+    }
+
+    // Function to request location permission
+    fun requestLocationPermission() {
+        locationPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+    }
+
+    // LaunchedEffect to run code when the Composable is launched (similar to onCreate in Activity)
+    LaunchedEffect(Unit) { // Unit means it runs only once on initial composition
+        checkLocationPermission() // Check permission when AuthScreen is displayed
+        if (!isLocationPermissionGranted.value) {
+            requestLocationPermission() // Request permission if not already granted
+        }
+        // ... other initialization logic for AuthScreen if needed ...
+    }
+
+
+/* LOCATION */
+
+
+
 
   if (authenticated) {
     navController.navigate(Screen.StartScreen.route)

@@ -26,7 +26,7 @@ object NetworkUtils {
   }
 
   suspend fun doGet(
-    urlString: String, headers: Map<String, String>
+    urlString: String, headers: Map<String, String>?
   ): NetworkResult<Map<String, Any>> {
     return withContext(Dispatchers.IO) {
       try {
@@ -34,9 +34,11 @@ object NetworkUtils {
       val connection = url.openConnection() as HttpURLConnection
 
       // Configurar headers
-      for ((key, value) in headers) {
-        connection.setRequestProperty(key, value)
-      }
+          if (headers != null) {
+              for ((key, value) in headers) {
+                  connection.setRequestProperty(key, value)
+              }
+          }
 
       try {
         connection.requestMethod = "GET"

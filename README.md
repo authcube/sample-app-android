@@ -47,9 +47,13 @@ git clone https://github.com/authcube/sample-app-android.git
 # 3. Using the app
 Before logging in, you **MUST** configure the app with identity provider details:
 1. Click **Settings**
-    ![](docs/images/app-settings.png)
+ 
+![](docs/images/app-settings.png)
+
 2. Fill in the fields with **your** information
-    ![](docs/images/save-config.png)
+ 
+![](docs/images/save-config.png)
+
 3. Go back and log in. You'll be redirected to the **home screen**
 
 ## Troubleshooting

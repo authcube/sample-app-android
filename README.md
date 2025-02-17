@@ -75,6 +75,10 @@ Try these fixes in order:
   3. Reopen Android Studio and click the `Run 'app'` button
   4. Let it rebuild the app
 
+### SDK Documentation
+
+[Link](https://doc.sec4you.com.br/authfy-sdk/v2.5/pt-BR/) to SDK Documentation.
+
 ### Important Information
 The Android Emulator is not aware of your local HOSTS configuration, so it is advised to use an 
 external server to develop and test your app

@@ -1,28 +1,21 @@
 package br.com.sec4you.authfy.app
 
 import android.content.Context
-import android.content.SharedPreferences
 import android.widget.Toast
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
@@ -48,9 +41,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import br.com.sec4you.authfy.app.ui.screens.config.HorizontalConfig
+import br.com.sec4you.authfy.app.ui.screens.config.VerticalConfig
 import br.com.sec4you.authfy.app.ui.theme.AuthfySampleTheme
 import br.com.sec4you.authfy.app.ui.theme.BtnBg
-import br.com.sec4you.authfy.app.ui.theme.BtnTxt
 import br.com.sec4you.authfy.app.ui.theme.GrayTxt
 import kotlinx.coroutines.launch
 
@@ -63,129 +57,54 @@ data class Config(
 )
 @Composable
 fun ConfigScreen(navController: NavController) {
-  val TAG = "AUTHCUBE:ConfigScreen"
-  val context = LocalContext.current
-  val scope = rememberCoroutineScope()
-  val configPrefs = ConfigPreferences(context)
-  val configState = remember { mutableStateOf(Config()) }
+    val TAG = "AUTHCUBE:ConfigScreen"
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val configPrefs = ConfigPreferences(context)
+    val configState = remember { mutableStateOf(Config()) }
 
-  LaunchedEffect(context) { configState.value = configPrefs.loadConfig() }
+    LaunchedEffect(context) { configState.value = configPrefs.loadConfig() }
 
-  val reloadConfig: () -> Unit = {
-    configState.value = configPrefs.loadConfig()
-    scope.launch {
-      Toast.makeText(context, "Configuration cleared", Toast.LENGTH_SHORT).show()
+    val reloadConfig: () -> Unit = {
+        configState.value = configPrefs.loadConfig()
+        scope.launch {
+            Toast.makeText(context, "Configuration cleared", Toast.LENGTH_SHORT).show()
+        }
+
     }
 
-  }
-
-  Scaffold(
-    topBar = { TopConfigBar(
-      navController = navController,
-      configPrefs = configPrefs,
-      onConfigCleared = reloadConfig
-    ) },
-    bottomBar = { Footer() }
-  ) { innerPadding ->
-    Box(
-      contentAlignment = Alignment.TopCenter,
-      modifier = Modifier
-        .fillMaxSize()
-        .padding(innerPadding)
-    ) {
-      Column(
-        horizontalAlignment =  Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-        modifier = Modifier
-          .padding(horizontal = 16.dp)
-      ) {
-        Text(
-          text = "CONNECT PARAMETERS",
-          color = GrayTxt,
-          fontWeight = FontWeight.Bold
-        )
-
-        ConfigTextField(
-          label = "Server",
-          value = configState.value.server,
-          onValueChange = { configState.value = configState.value.copy(server = it)}
-        )
-        ConfigTextField(
-          label = "Client Id",
-          value = configState.value.clientId,
-          onValueChange = { configState.value = configState.value.copy(clientId = it)}
-        )
-        ConfigTextField(
-          label = "App Name",
-          value = configState.value.appName,
-          onValueChange = { configState.value = configState.value.copy(appName = it)}
-        )
-
-        Spacer(modifier = Modifier.size(12.dp))
-
-        Row(
-          horizontalArrangement = Arrangement.SpaceBetween,
-          verticalAlignment = Alignment.CenterVertically,
-          modifier = Modifier.width(280.dp)
+    Scaffold(
+        topBar = {
+            TopConfigBar(
+                navController = navController,
+                configPrefs = configPrefs,
+                onConfigCleared = reloadConfig
+            )
+        },
+        bottomBar = { Footer() }
+    ) { innerPadding ->
+        BoxWithConstraints(
+            contentAlignment = Alignment.TopCenter,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
         ) {
-          Text(
-            text = "Enroll with Risk",
-            color = GrayTxt,
-            fontWeight = FontWeight.Bold
-          )
-          ToggleButton(
-            checked = configState.value.enrollWithRisk,
-            onCheckedChange = { configState.value = configState.value.copy(enrollWithRisk = it)}
-          )
-        }
+            when (this.maxWidth) {
+                in (0.dp..600.dp) -> {
+                    VerticalConfig(configPrefs = configPrefs)
+                }
 
-        Row(
-          horizontalArrangement = Arrangement.SpaceBetween,
-          verticalAlignment = Alignment.CenterVertically,
-          modifier = Modifier.width(280.dp)
-        ) {
-          Text(
-            text = "PKCE",
-            color = GrayTxt,
-            fontWeight = FontWeight.Bold
-          )
-          ToggleButton(
-            checked = configState.value.pkce,
-            onCheckedChange = { configState.value = configState.value.copy(pkce = it)}
-          )
+                in (600.dp..900.dp) -> {
+                    HorizontalConfig(configPrefs = configPrefs)
+                }
+            }
         }
-
-        Spacer(modifier = Modifier.size(12.dp))
-
-        Button(
-          colors = ButtonDefaults.buttonColors(
-            containerColor = BtnBg,
-            contentColor = BtnTxt,
-          ),
-          shape = RoundedCornerShape(12.dp),
-          onClick = {
-            configPrefs.saveConfig(configState.value)
-            Toast.makeText(context, "Successfully saved configuration", Toast.LENGTH_SHORT).show()
-          },
-          modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 40.dp)
-            .height(60.dp)
-        ) {
-          Text(
-            text = "Save",
-            fontSize = 24.sp
-          )
-        }
-      }
     }
-  }
 }
 
 @Composable
 fun TopConfigBar(navController: NavController, configPrefs: ConfigPreferences, onConfigCleared: () -> Unit) {
   Box(
-
     modifier = Modifier
       .fillMaxWidth()
       .wrapContentHeight()
@@ -201,7 +120,6 @@ fun TopConfigBar(navController: NavController, configPrefs: ConfigPreferences, o
         contentDescription = "Authcube logo",
         modifier = Modifier
           .width(280.dp)
-          .padding(top = 80.dp)
       )
       Text(
         text = "Sample App",
@@ -217,6 +135,7 @@ fun TopConfigBar(navController: NavController, configPrefs: ConfigPreferences, o
         pressedElevation = 0.dp
       ),
       modifier = Modifier
+          .padding(top = 12.dp, start = 12.dp)
         .align(Alignment.TopStart)
     ) {
       Icon(
@@ -239,6 +158,7 @@ fun TopConfigBar(navController: NavController, configPrefs: ConfigPreferences, o
         pressedElevation = 0.dp
       ),
       modifier = Modifier
+          .padding(top = 12.dp, end = 12.dp)
         .align(Alignment.TopEnd)
     ) {
       Icon(
@@ -253,13 +173,17 @@ fun TopConfigBar(navController: NavController, configPrefs: ConfigPreferences, o
 }
 
 @Composable
-fun ConfigTextField(label: String, value: String, onValueChange: (String) -> Unit) {
+fun ConfigTextField(
+    label: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
   OutlinedTextField(
     value = value,
     onValueChange = onValueChange,
     label = { Text(label, color=GrayTxt, fontWeight = FontWeight.Bold) },
-    modifier = Modifier
-      .width(280.dp)
+    modifier = modifier
       .heightIn(min = 56.dp),
     singleLine = true,
     maxLines = 1
@@ -307,7 +231,14 @@ open class ConfigPreferences(context: Context?) {
 }
 
 
-@Preview(showBackground = true)
+@Preview(
+    showSystemUi = true,
+    device = "spec:width=673dp,height=841dp,orientation=landscape"
+)
+@Preview(
+    showSystemUi = true,
+    device = "spec:width=1080px,height=2424px"
+)
 @Composable
 fun ConfigScreenPreview() {
   AuthfySampleTheme {

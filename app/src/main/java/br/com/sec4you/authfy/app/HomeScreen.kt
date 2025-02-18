@@ -56,193 +56,195 @@ import net.openid.appauth.EndSessionResponse
 
 // https://proandroiddev.com/jetpack-compose-tricks-conditionally-applying-modifiers-for-dynamic-uis-e3fe5a119f45
 inline fun Modifier.conditional(
-  condition: Boolean,
-  ifTrue: Modifier.() -> Modifier,
-  ifFalse: Modifier.() -> Modifier = { this }
+    condition: Boolean,
+    ifTrue: Modifier.() -> Modifier,
+    ifFalse: Modifier.() -> Modifier = { this }
 ): Modifier = if (condition) {
     then(ifTrue(Modifier))
-  } else {
+} else {
     then(ifFalse(Modifier))
-  }
+}
 
 @Composable
 fun Panel(
-  modifier: Modifier,
-  height: Dp,
-  verticalArrangement: Arrangement.HorizontalOrVertical = Arrangement.Center
+    modifier: Modifier,
+    height: Dp,
+    verticalArrangement: Arrangement.HorizontalOrVertical = Arrangement.Center
 ) {
-  Column(
-    verticalArrangement = verticalArrangement, modifier = modifier
-      .fillMaxWidth()
-      .padding(horizontal = height)
-  ) {}
+    Column(
+        verticalArrangement = verticalArrangement, modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = height)
+    ) {}
 }
-
 
 
 @Composable
 fun SimpleButton(text: String = "Button") {
-  Button(
-    onClick = {}
-  ) {
-    Text(
-      text = text
-    )
-  }
+    Button(
+        onClick = {}
+    ) {
+        Text(
+            text = text
+        )
+    }
 }
 
 
 @RequiresApi(Build.VERSION_CODES.M)
 @Composable
 fun HomeScreen(
-  modifier: Modifier = Modifier,
-  navController: NavController,
-  authenticated: Boolean,
-  onAuthenticatedChange: (Boolean) -> Unit,
-  authStateManager: AuthStateManager
+    modifier: Modifier = Modifier,
+    navController: NavController,
+    authenticated: Boolean,
+    onAuthenticatedChange: (Boolean) -> Unit,
+    authStateManager: AuthStateManager
 ) {
-  var TAG = "AUTHCUBE:SC:HO"
-  val currentRoute by remember { mutableStateOf("home") }
-  val context = LocalContext.current
-  val userPrefs = UserPreferences(context)
-  val authService = remember {
-    AuthorizationService(context)
-  }
-
-  val launcher = rememberLauncherForActivityResult(
-    contract = ActivityResultContracts.StartActivityForResult()
-  ) { result: ActivityResult ->
-
-    if (result.resultCode != Activity.RESULT_OK) {
-      return@rememberLauncherForActivityResult
+    var TAG = "AUTHCUBE:SC:HO"
+    val currentRoute by remember { mutableStateOf("home") }
+    val context = LocalContext.current
+    val userPrefs = UserPreferences(context)
+    val authService = remember {
+        AuthorizationService(context)
     }
 
-    // Handle the result here
-    val res = result.data?.let { EndSessionResponse.fromIntent(it) }
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result: ActivityResult ->
 
-    if ( res != null ) {
-      // logout success
-      userPrefs.clear()
-      onAuthenticatedChange(false)
-    }
-
-  }
-
-  if (!authenticated) {
-    navController.navigate(Screen.AuthScreen.route)
-    return
-  }
-
-  Scaffold(
-    topBar = { TopHomeBar() },
-    bottomBar = { HomeFooter(
-      navController = navController,
-      currentRoute = currentRoute
-    )
-    }
-  ) { innerPadding ->
-    Box(
-      modifier = Modifier
-        .fillMaxSize()
-        .padding(innerPadding),
-      contentAlignment = Alignment.BottomCenter
-    ) {
-      Column(
-      ) {
-        Button(
-          colors = ButtonDefaults.buttonColors(
-            containerColor = BtnBg,
-            contentColor = BtnTxt,
-          ),
-          shape = RoundedCornerShape(12.dp),
-          modifier = Modifier
-            .padding(bottom = 12.dp)
-            .width(280.dp)
-            .height(60.dp),
-          onClick = {
-            val authState = authStateManager.authState
-
-            val authServiceConfig = AuthorizationServiceConfiguration(
-              authStateManager.authState.lastTokenResponse?.request?.configuration?.discoveryDoc!!
-            )
-
-            val endSessionRequest = EndSessionRequest.Builder(authServiceConfig)
-              .setIdTokenHint(authState.idToken)
-              .setPostLogoutRedirectUri(
-                Uri.parse("br.com.sec4you.authfy.app.appsample:/logoutredirect")
-              )
-              .build()
-
-            val endSessionIntent: Intent = authService.getEndSessionRequestIntent(endSessionRequest)
-            launcher.launch(endSessionIntent)
-          }
-        ) {
-          Text(
-            text = "Logout",
-            fontSize = 24.sp
-          )
+        if (result.resultCode != Activity.RESULT_OK) {
+            return@rememberLauncherForActivityResult
         }
-      }
+
+        // Handle the result here
+        val res = result.data?.let { EndSessionResponse.fromIntent(it) }
+
+        if (res != null) {
+            // logout success
+            userPrefs.clear()
+            onAuthenticatedChange(false)
+        }
+
     }
-  }
 
-  Column(
-    verticalArrangement = Arrangement.Center,
-    modifier = modifier
-      .fillMaxSize()
-      .conditional(isDebugEnabled(), {
-        border(BorderStroke(2.dp, SolidColor(Color.Red)))
-      })
-      .padding(horizontal = 10.dp, vertical = 10.dp)
-  ) {
+    if (!authenticated) {
+        navController.navigate(Screen.AuthScreen.route)
+        return
+    }
 
-  }
+    Scaffold(
+        topBar = { TopHomeBar() },
+        bottomBar = {
+            HomeFooter(
+                navController = navController,
+                currentRoute = currentRoute
+            )
+        }
+    ) { innerPadding ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding),
+            contentAlignment = Alignment.BottomCenter
+        ) {
+            Column(
+            ) {
+                Button(
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = BtnBg,
+                        contentColor = BtnTxt,
+                    ),
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier
+                        .padding(bottom = 12.dp)
+                        .width(280.dp)
+                        .height(60.dp),
+                    onClick = {
+                        val authState = authStateManager.authState
+
+                        val authServiceConfig = AuthorizationServiceConfiguration(
+                            authStateManager.authState.lastTokenResponse?.request?.configuration?.discoveryDoc!!
+                        )
+
+                        val endSessionRequest = EndSessionRequest.Builder(authServiceConfig)
+                            .setIdTokenHint(authState.idToken)
+                            .setPostLogoutRedirectUri(
+                                Uri.parse("br.com.sec4you.authfy.app.appsample:/logoutredirect")
+                            )
+                            .build()
+
+                        val endSessionIntent: Intent =
+                            authService.getEndSessionRequestIntent(endSessionRequest)
+                        launcher.launch(endSessionIntent)
+                    }
+                ) {
+                    Text(
+                        text = "Logout",
+                        fontSize = 24.sp
+                    )
+                }
+            }
+        }
+    }
+
+    Column(
+        verticalArrangement = Arrangement.Center,
+        modifier = modifier
+            .fillMaxSize()
+            .conditional(isDebugEnabled(), {
+                border(BorderStroke(2.dp, SolidColor(Color.Red)))
+            })
+            .padding(horizontal = 10.dp, vertical = 10.dp)
+    ) {
+
+    }
 }
 
 @Composable
 fun TopHomeBar() {
-  Box(
-    modifier = Modifier
-      .fillMaxWidth()
-      .background(color = MaterialTheme.colorScheme.background),
-    contentAlignment = Alignment.TopCenter
-  ) {
-    Column(
-      horizontalAlignment = Alignment.CenterHorizontally,
-      verticalArrangement = Arrangement.Top
-    ) {
-      Image(
-        painter = painterResource(id = R.drawable.authcube_logo),
-        contentDescription = "Splash logo",
+    Box(
         modifier = Modifier
-          .width(220.dp)
-          .height(180.dp)
-          .offset(y = (-40).dp)
-      )
+            .fillMaxWidth()
+            .height(80.dp)
+            .background(color = MaterialTheme.colorScheme.background),
+        contentAlignment = Alignment.TopCenter
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Top
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.authcube_logo),
+                contentDescription = "Splash logo",
+                modifier = Modifier
+                    .width(220.dp)
+                    .height(80.dp)
+            )
+        }
     }
-  }
 
 }
 
 
 private var LOCAL_DEBUG = false;
 fun isDebugEnabled(): Boolean {
-  return LOCAL_DEBUG || DEBUG_IS_ENABLED.value == true
+    return LOCAL_DEBUG || DEBUG_IS_ENABLED.value == true
 }
 
 @RequiresApi(Build.VERSION_CODES.M)
 @Preview(showBackground = true)
 @Composable
 fun HomeScreenPreview() {
-  AuthfySampleTheme {
-    LOCAL_DEBUG = false
+    AuthfySampleTheme {
+        LOCAL_DEBUG = false
 
-    Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-      HomeScreen(
-        navController = rememberNavController(),
-        authenticated = true,
-        onAuthenticatedChange = {},
-        authStateManager = AuthStateManager(null, null, null))
+        Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+            HomeScreen(
+                navController = rememberNavController(),
+                authenticated = true,
+                onAuthenticatedChange = {},
+                authStateManager = AuthStateManager(null, null, null)
+            )
+        }
     }
-  }
 }

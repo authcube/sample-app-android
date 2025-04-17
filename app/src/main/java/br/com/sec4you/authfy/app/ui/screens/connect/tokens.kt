@@ -58,153 +58,174 @@ import kotlinx.coroutines.launch
 
 
 @Composable
-fun TokensScreen(navController: NavController, authStateManager: AuthStateManager) {
-  val TAG = "AUTHCUBE:TOKENS_SCREEN"
-  val currentRoute by remember { mutableStateOf("connect") }
-  val clipboardManager = LocalClipboardManager.current
-  val context = LocalContext.current
-  val scope = rememberCoroutineScope()
+fun TokensScreen(
+    navController: NavController,
+    authStateManager: AuthStateManager,
+    onCameraClick: () -> Unit
+) {
+    val TAG = "AUTHCUBE:TOKENS_SCREEN"
+    val currentRoute by remember { mutableStateOf("connect") }
+    val clipboardManager = LocalClipboardManager.current
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
 
-  var token by remember { mutableStateOf("") }
+    var token by remember { mutableStateOf("") }
 
-  Scaffold(
-    topBar =  { RiskHeader(navController, Screen.ConnectScreen.route) },
-    bottomBar = { HomeFooter(navController = navController, currentRoute = currentRoute) }
-  ) { innerPadding ->
-    Column(
-      modifier = Modifier
-        .fillMaxSize()
-        .padding(innerPadding),
-      horizontalAlignment = Alignment.CenterHorizontally,
-      verticalArrangement = Arrangement.Top
-    ) {
-
-      // Access Token button
-      Button(
-        modifier = Modifier
-          .padding(bottom = 8.dp)
-          .height(48.dp)
-          .width(240.dp),
-        colors = ButtonDefaults.buttonColors(
-          containerColor = BtnBg,
-          contentColor = BtnTxt,
-        ),
-        shape = RoundedCornerShape(12.dp),
-        onClick = {
-          token = authStateManager.authState.accessToken!!
-        }
-      ) {
-        Text(
-          text = "Access Token",
-          fontSize = 18.sp
-        )
-      }
-
-      // Refresh token button
-      Button(
-        modifier = Modifier
-          .padding(bottom = 8.dp)
-          .height(48.dp)
-          .width(240.dp),
-        colors = ButtonDefaults.buttonColors(
-          containerColor = BtnBg,
-          contentColor = BtnTxt,
-        ),
-        shape = RoundedCornerShape(12.dp),
-        onClick = {
-          val refreshToken = authStateManager.authState.refreshToken
-          if (refreshToken.isNullOrEmpty()) {
-            Log.e(TAG, "Refresh token is null or empty")
-            Toast.makeText(context, "Refresh token is null or empty", Toast.LENGTH_SHORT).show()
-            return@Button
-          }
-
-          token = refreshToken
-        }
-      ) {
-        Text(
-          text = "Refresh Token",
-          fontSize = 18.sp
-        )
-      }
-
-      // Id Token button
-      Button(
-        modifier = Modifier
-          .padding(bottom = 8.dp)
-          .height(48.dp)
-          .width(240.dp),
-        colors = ButtonDefaults.buttonColors(
-          containerColor = BtnBg,
-          contentColor = BtnTxt,
-        ),
-        shape = RoundedCornerShape(12.dp),
-        onClick = { token = authStateManager.authState.idToken!! }
-      ) {
-        Text(
-          text = "Id Token",
-          fontSize = 18.sp
-        )
-      }
-      Box(
-        modifier = Modifier
-          .fillMaxWidth()
-          .padding(horizontal = 16.dp)
-          .padding(bottom = 16.dp)
-          .weight(1f)
-      ) {
-        TextField(
-          colors = TextFieldDefaults.colors(
-            unfocusedContainerColor = Color.White,
-            focusedContainerColor = Color.White
-          ),
-          value = token,
-          onValueChange = { },
-          modifier = Modifier
-            .fillMaxWidth()
-            .fillMaxHeight()
-            .border(
-              width = 1.dp,
-              color = Color.Black,
-              shape = RoundedCornerShape(4.dp)
-            ),
-          readOnly = true,
-          label = { }
-        )
-        Box(
-          modifier = Modifier
-            .align(Alignment.BottomEnd)
-            .padding(bottom = 12.dp, end = 12.dp)
-            .background(
-              color = BtnBg,
-              shape = RoundedCornerShape(4.dp)
+    Scaffold(
+        topBar = { RiskHeader(navController, Screen.ConnectScreen.route) },
+        bottomBar = {
+            HomeFooter(
+                navController = navController,
+                currentRoute = currentRoute,
+                onCameraClick = onCameraClick
             )
-            .clickable {
-              scope.launch {
-                clipboardManager.setText(AnnotatedString(token))
-                Toast.makeText(context, "Token copied to clipboard", Toast.LENGTH_SHORT).show()
-              }
-            }
-        ) {
-          Image(
-            painter = painterResource(R.drawable.white_copy_icon),
-            contentDescription = "Copy to clipboard",
-            modifier = Modifier
-              .padding(6.dp)
-              .size(24.dp)
-          )
         }
-      }
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Top
+        ) {
+
+            // Access Token button
+            Button(
+                modifier = Modifier
+                    .padding(bottom = 8.dp)
+                    .height(48.dp)
+                    .width(240.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = BtnBg,
+                    contentColor = BtnTxt,
+                ),
+                shape = RoundedCornerShape(12.dp),
+                onClick = {
+                    token = authStateManager.authState.accessToken!!
+                }
+            ) {
+                Text(
+                    text = "Access Token",
+                    fontSize = 18.sp
+                )
+            }
+
+            // Refresh token button
+            Button(
+                modifier = Modifier
+                    .padding(bottom = 8.dp)
+                    .height(48.dp)
+                    .width(240.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = BtnBg,
+                    contentColor = BtnTxt,
+                ),
+                shape = RoundedCornerShape(12.dp),
+                onClick = {
+                    val refreshToken = authStateManager.authState.refreshToken
+                    if (refreshToken.isNullOrEmpty()) {
+                        Log.e(TAG, "Refresh token is null or empty")
+                        Toast.makeText(
+                            context,
+                            "Refresh token is null or empty",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        return@Button
+                    }
+
+                    token = refreshToken
+                }
+            ) {
+                Text(
+                    text = "Refresh Token",
+                    fontSize = 18.sp
+                )
+            }
+
+            // Id Token button
+            Button(
+                modifier = Modifier
+                    .padding(bottom = 8.dp)
+                    .height(48.dp)
+                    .width(240.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = BtnBg,
+                    contentColor = BtnTxt,
+                ),
+                shape = RoundedCornerShape(12.dp),
+                onClick = { token = authStateManager.authState.idToken!! }
+            ) {
+                Text(
+                    text = "Id Token",
+                    fontSize = 18.sp
+                )
+            }
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+                    .padding(bottom = 16.dp)
+                    .weight(1f)
+            ) {
+                TextField(
+                    colors = TextFieldDefaults.colors(
+                        unfocusedContainerColor = Color.White,
+                        focusedContainerColor = Color.White
+                    ),
+                    value = token,
+                    onValueChange = { },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .fillMaxHeight()
+                        .border(
+                            width = 1.dp,
+                            color = Color.Black,
+                            shape = RoundedCornerShape(4.dp)
+                        ),
+                    readOnly = true,
+                    label = { }
+                )
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(bottom = 12.dp, end = 12.dp)
+                        .background(
+                            color = BtnBg,
+                            shape = RoundedCornerShape(4.dp)
+                        )
+                        .clickable {
+                            scope.launch {
+                                clipboardManager.setText(AnnotatedString(token))
+                                Toast.makeText(
+                                    context,
+                                    "Token copied to clipboard",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                        }
+                ) {
+                    Image(
+                        painter = painterResource(R.drawable.white_copy_icon),
+                        contentDescription = "Copy to clipboard",
+                        modifier = Modifier
+                            .padding(6.dp)
+                            .size(24.dp)
+                    )
+                }
+            }
+        }
     }
-  }
 }
 
 @Preview(showBackground = true)
 @Composable
 fun ConnectScreenPreview() {
-  AuthfySampleTheme {
-    Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-      TokensScreen(navController = rememberNavController(), authStateManager = AuthStateManager(null, null, null))
+    AuthfySampleTheme {
+        Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+            TokensScreen(
+                navController = rememberNavController(),
+                authStateManager = AuthStateManager(null, null, null),
+                onCameraClick = {})
+        }
     }
-  }
 }

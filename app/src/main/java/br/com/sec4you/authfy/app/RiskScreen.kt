@@ -22,16 +22,13 @@ import br.com.sec4you.authfy.app.ui.screens.risk.VerticalRisk
 import br.com.sec4you.authfy.app.ui.theme.AuthfySampleTheme
 
 @Composable
-fun RiskScreen(navController: NavController) {
+fun RiskScreen(navController: NavController, onCameraClick: () -> Unit) {
   val currentRoute by remember { mutableStateOf("risk") }
 
   Scaffold(
     topBar = { TopHomeBar() },
     bottomBar = {
-      HomeFooter(
-        navController = navController,
-        currentRoute = currentRoute
-      )
+      HomeFooter(navController = navController, currentRoute = currentRoute, onCameraClick = onCameraClick)
     }
   ) { innerPadding ->
     BoxWithConstraints(
@@ -64,7 +61,7 @@ fun RiskScreen(navController: NavController) {
 fun RiskScreenPreview() {
   AuthfySampleTheme {
     Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-      RiskScreen(navController = rememberNavController())
+      RiskScreen(navController = rememberNavController(), onCameraClick = {})
     }
   }
 }

@@ -2,7 +2,9 @@ package br.com.sec4you.authfy.app
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.Intent
 import android.content.SharedPreferences
+import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -23,111 +25,133 @@ import java.util.concurrent.locks.ReentrantLock
 @Composable
 //fun AuthyNavigator(route: String = Screen.MainScreen.route) {
 fun AuthyNavigator(route: String = Screen.AuthScreen.route) {
-  val navController = rememberNavController()
+    val navController = rememberNavController()
 
-  val TAG = "AUTHCUBE::NavController"
+    val TAG = "AUTHCUBE::NavController"
 
-  val STORE_NAME = "AuthState"
-  var mPrefs: SharedPreferences = remember {
-    navController.context.getSharedPreferences(STORE_NAME,
-      Context.MODE_PRIVATE)
-  }
-  var mPrefsLock: ReentrantLock = remember {
-    ReentrantLock()
-  }
+    val STORE_NAME = "AuthState"
+    var mPrefs: SharedPreferences = remember {
+        navController.context.getSharedPreferences(
+            STORE_NAME,
+            Context.MODE_PRIVATE
+        )
+    }
+    var mPrefsLock: ReentrantLock = remember {
+        ReentrantLock()
+    }
 
-  val authStateManager: AuthStateManager = remember {
-    AuthStateManager(mPrefs, mPrefsLock, navController.context)
-  }
+    val authStateManager: AuthStateManager = remember {
+        AuthStateManager(mPrefs, mPrefsLock, navController.context)
+    }
 
-  var authenticated by remember { mutableStateOf(false) }
-  fun changeAuthenticateState(state: Boolean) {
-    authenticated = state
-    if (state) {
-      navController.navigate(Screen.HomeScreen.route)
-    } else {
+    var authenticated by remember { mutableStateOf(false) }
+    fun changeAuthenticateState(state: Boolean) {
+        authenticated = state
+        if (state) {
+            navController.navigate(Screen.HomeScreen.route)
+        } else {
 //      navController.navigate(Screen.MainScreen.route)
-      navController.navigate(Screen.AuthScreen.route)
-    }
-  }
-
-  NavHost(navController = navController, startDestination = route) {
-
-    composable(route = Screen.MainScreen.route) {
-      LoginScreen(navController = navController, authenticated = authenticated, authStateManager = authStateManager)
+            navController.navigate(Screen.AuthScreen.route)
+        }
     }
 
-    composable(route = Screen.AuthScreen.route) {
-      AuthScreen(
-        navController = navController,
-        authenticated = authenticated,
-        onAuthenticatedChange = { changeAuthenticateState(it) },
-        authStateManager = authStateManager
-      )
+    val openCameraAction: () -> Unit = remember {
+        {
+
+            Log.d("AuthyNavigator", "Open Camera button clicked!")
+
+            // Example: You might start an activity, access the camera service, etc.
+            // ... your camera-opening code here ...
+        }
     }
 
-    composable(route = Screen.HomeScreen.route) {
-      HomeScreen(
-        navController = navController,
-        authenticated = authenticated,
-        onAuthenticatedChange = { changeAuthenticateState(it) },
-        authStateManager = authStateManager
-      )
-    }
+    NavHost(navController = navController, startDestination = route) {
 
-    composable(route = Screen.ConfigScreen.route) {
-      ConfigScreen(navController = navController)
-    }
+        composable(route = Screen.MainScreen.route) {
+            LoginScreen(
+                navController = navController,
+                authenticated = authenticated,
+                authStateManager = authStateManager
+            )
+        }
 
-    composable(route = Screen.SplashScreen.route) {
-      SplashScreen(navController = navController)
-    }
+        composable(route = Screen.AuthScreen.route) {
+            AuthScreen(
+                navController = navController,
+                authenticated = authenticated,
+                onAuthenticatedChange = { changeAuthenticateState(it) },
+                authStateManager = authStateManager
+            )
+        }
 
-    composable(route = Screen.StartScreen.route) {
-      StartScreen(navController = navController)
-    }
+        composable(route = Screen.HomeScreen.route) {
+            HomeScreen(
+                navController = navController,
+                authenticated = authenticated,
+                onAuthenticatedChange = { changeAuthenticateState(it) },
+                authStateManager = authStateManager,
+                onCameraClick = openCameraAction
+            )
+        }
 
-    composable(route = Screen.RiskScreen.route) {
-      RiskScreen(navController = navController)
-    }
+        composable(route = Screen.ConfigScreen.route) {
+            ConfigScreen(navController = navController)
+        }
 
-    composable(route = Screen.DeviceInfoScreen.route) {
-      DeviceInformation(
-        navController = navController,
-        authStateManager = authStateManager
-      )
-    }
+        composable(route = Screen.SplashScreen.route) {
+            SplashScreen(navController = navController)
+        }
 
-    composable(route = Screen.EvaluateScreen.route) {
-      Evaluate(
-        navController = navController,
-        authStateManager = authStateManager
-      )
-    }
+        composable(route = Screen.StartScreen.route) {
+            StartScreen(navController = navController)
+        }
 
-    composable(route = Screen.ConnectScreen.route) {
-      ConnectScreen(
-        navController = navController,
-        authStateManager = authStateManager
-      )
-    }
+        composable(route = Screen.RiskScreen.route) {
+            RiskScreen(navController = navController, onCameraClick = openCameraAction)
+        }
 
-    composable(route = Screen.TokensScreen.route) {
-      TokensScreen(
-        navController = navController,
-        authStateManager = authStateManager
-      )
-    }
+        composable(route = Screen.DeviceInfoScreen.route) {
+            DeviceInformation(
+                navController = navController,
+                authStateManager = authStateManager,
+                onCameraClick = openCameraAction
+            )
+        }
 
-    composable(route = Screen.StrongScreen.route) {
-      StrongScreen(navController = navController)
-    }
+        composable(route = Screen.EvaluateScreen.route) {
+            Evaluate(
+                navController = navController,
+                authStateManager = authStateManager,
+                onCameraClick = openCameraAction
+            )
+        }
 
-    composable(route = Screen.TOTPScreen.route) {
-      TOTP(
-        navController = navController,
-        authStateManager = authStateManager
-      )
+        composable(route = Screen.ConnectScreen.route) {
+            ConnectScreen(
+                navController = navController,
+                authStateManager = authStateManager,
+                onCameraClick = openCameraAction
+            )
+        }
+
+        composable(route = Screen.TokensScreen.route) {
+            TokensScreen(
+                navController = navController,
+                authStateManager = authStateManager,
+                onCameraClick = openCameraAction
+            )
+        }
+
+        composable(route = Screen.StrongScreen.route) {
+            StrongScreen(navController = navController, onCameraClick = openCameraAction)
+        }
+
+        composable(route = Screen.TOTPScreen.route) {
+            TOTP(
+                navController = navController,
+                authStateManager = authStateManager,
+                onCameraClick = openCameraAction
+            )
+        }
     }
-  }
 }

@@ -57,7 +57,8 @@ dependencies {
   implementation("androidx.compose.ui:ui-tooling-preview")
   implementation("androidx.compose.material3:material3")
   implementation("androidx.fragment:fragment-ktx:1.7.0")
-  testImplementation("junit:junit:4.13.2")
+    implementation("androidx.camera:camera-core:1.4.2")
+    testImplementation("junit:junit:4.13.2")
   androidTestImplementation("androidx.test.ext:junit:1.1.5")
   androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
   androidTestImplementation(platform("androidx.compose:compose-bom:2023.08.00"))
@@ -65,6 +66,7 @@ dependencies {
   debugImplementation("androidx.compose.ui:ui-tooling")
   debugImplementation("androidx.compose.ui:ui-test-manifest")
   implementation("androidx.navigation:navigation-compose:2.7.7")
+    implementation("androidx.compose.material:material-icons-extended")
 
   implementation("com.google.android.gms:play-services-location:20.0.0")
 

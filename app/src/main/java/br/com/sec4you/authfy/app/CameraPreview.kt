@@ -12,9 +12,7 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Text
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
@@ -45,7 +43,6 @@ fun QrCodeScanner(
         onResult = { isGranted: Boolean ->
             hasCameraPermission = isGranted
             if (!isGranted) {
-                // Opcional: Mostrar mensagem ao usuário ou lidar com a falta de permissão
                 Log.w("QrCodeScanner", "Permissão da câmera negada.")
                 Toast.makeText(context, "Permissão da câmera negada.", Toast.LENGTH_LONG).show()
             }
@@ -74,7 +71,7 @@ fun QrCodeScanner(
                             ViewGroup.LayoutParams.MATCH_PARENT,
                             ViewGroup.LayoutParams.MATCH_PARENT
                         )
-                        scaleType = PreviewView.ScaleType.FILL_CENTER // Ou outra escala desejada
+                        scaleType = PreviewView.ScaleType.FILL_CENTER
                     }
 
                     // Configuração do CameraX
@@ -92,21 +89,12 @@ fun QrCodeScanner(
                             // Definir estratégia de backpressure. KEEP_ONLY_LATEST descarta frames antigos.
                             .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                             .build()
-                            .also {
-//                                it.setAnalyzer(cameraExecutor, QrCodeAnalyzer { url ->
-//                                    // Uma vez que o QR code é escaneado, chama o callback
-//                                    onQrCodeScanned(url)
-//                                    // Opcional: talvez você queira parar a análise aqui ou
-//                                    // controlar externamente se deve continuar escaneando.
-//                                    // cameraProvider.unbindAll() // Descomente se quiser parar após o primeiro scan
-//                                })
-
-                                    imageAnalysis -> // Renomeei 'it' para clareza
+                            .also { imageAnalysis ->
 
                                 // 1. Crie a instância do seu Analyzer explicitamente
                                 val analyzerInstance = QrCodeAnalyzer(
-                                    context = ctx, // Passa o Context da factory do AndroidView
-                                    onQrCodeScanned = { url -> // Passa a lambda do callback como parâmetro
+                                    context = ctx,
+                                    onQrCodeScanned = { url ->
                                         onQrCodeScanned(url) // Chama o callback externo
                                         // cameraProvider.unbindAll() // Opcional: parar scan
                                     }
@@ -132,7 +120,7 @@ fun QrCodeScanner(
                             Log.e("QrCodeScanner", "Falha ao vincular use cases da câmera", exc)
                         }
 
-                    }, ContextCompat.getMainExecutor(ctx)) // Executa o listener na thread principal
+                    }, ContextCompat.getMainExecutor(ctx))
 
                     previewView
                 },
@@ -146,14 +134,9 @@ fun QrCodeScanner(
         }
     }
 
-    // Lembre-se de desligar o executor quando o Composable for descartado
     DisposableEffect(Unit) {
         onDispose {
             cameraExecutor.shutdown()
-            // Opcional, mas boa prática: desvincular a câmera explicitamente se necessário,
-            // embora o bindToLifecycle já cuide disso na destruição do lifecycleOwner.
-            // val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
-            // cameraProviderFuture.addListener({ cameraProviderFuture.get().unbindAll() }, ContextCompat.getMainExecutor(context))
         }
     }
 }
@@ -206,7 +189,6 @@ private class QrCodeAnalyzer(
                                 }
                                 // ******************************************
 
-                                // Em vez de 'break', retorne da lambda addOnSuccessListener
                                 return@addOnSuccessListener
                             }
                         } else {
@@ -227,7 +209,7 @@ private class QrCodeAnalyzer(
                             // barcode.rawValue?.let { value ->
                             //     isScanning = false
                             //     onQrCodeScanned(value)
-                            //     return@addOnSuccessListener // <-- ALTERAÇÃO AQUI TAMBÉM
+                            //     return@addOnSuccessListener
                             // }
                         }
                     }
@@ -237,14 +219,11 @@ private class QrCodeAnalyzer(
                 .addOnFailureListener { e ->
                     Log.e("QrCodeAnalyzer", "Falha na leitura do Barcode", e)
                     // Garante que paramos de escanear mesmo em caso de falha neste frame específico,
-                    // mas podemos tentar de novo no próximo. Opcional: resetar isScanning aqui se necessário.
-                    // isScanning = true // Ou manter false dependendo da lógica desejada
+                    // Opcional: resetar isScanning aqui se necessário.
                 }
                 .addOnCompleteListener {
                     imageProxy.close()
                     // Se nenhum código foi achado no success E não houve falha,
-                    // E você quiser resetar o scan APÓS o processamento completo do frame:
-                    // isScanning = true // Descomente se precisar resetar o scan aqui
                 }
         } else {
             imageProxy.close()

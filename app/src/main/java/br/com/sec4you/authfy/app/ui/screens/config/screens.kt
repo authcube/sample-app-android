@@ -43,7 +43,7 @@ import br.com.sec4you.authfy.app.ui.theme.GrayTxt
 @Composable
 fun VerticalConfig(configPrefs: ConfigPreferences) {
     val context = LocalContext.current
-    val configState = remember { mutableStateOf(Config()) }
+    val configState = remember { mutableStateOf(configPrefs.loadConfig()) }
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,

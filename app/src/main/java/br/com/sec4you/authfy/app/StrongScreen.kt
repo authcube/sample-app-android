@@ -43,83 +43,89 @@ import br.com.sec4you.authfy.app.ui.theme.BtnTxt
 
 
 @Composable
-fun StrongScreen(navController: NavController) {
-  val TAG = "AUTHCUBE:STRONG_SCREEN"
-  val currentRoute by remember { mutableStateOf("strong") }
+fun StrongScreen(navController: NavController, onCameraClick: () -> Unit) {
+    val TAG = "AUTHCUBE:STRONG_SCREEN"
+    val currentRoute by remember { mutableStateOf("strong") }
 
-  Scaffold(
-    topBar = { TopHomeBar() },
-    bottomBar = { HomeFooter(navController = navController, currentRoute = currentRoute) }
-  ) { innerPadding ->
-    Box(
-      modifier = Modifier
-        .fillMaxSize()
-        .padding(innerPadding)
-    ) {
-      Column(
-        modifier = Modifier
-          .fillMaxSize()
-          .padding(16.dp),
-        verticalArrangement = Arrangement.Top,
-        horizontalAlignment = Alignment.CenterHorizontally
-      ) {
-
-        Button(
-          onClick = { navController.navigate(Screen.TOTPScreen.route) },
-          shape = RoundedCornerShape(12.dp),
-          colors = ButtonDefaults.buttonColors(
-            containerColor =BtnBg,
-            contentColor =BtnTxt,
-          ),
-          contentPadding = PaddingValues(0.dp),
-          modifier = Modifier
-            .fillMaxWidth()
-            .height(160.dp)
-        ) {
-          Row(
-            modifier = Modifier
-              .fillMaxWidth()
-              .padding(start = 20.dp),
-            horizontalArrangement = Arrangement.Start,
-            verticalAlignment = Alignment.CenterVertically
-          ) {
-            Image(
-              painter = painterResource(R.drawable.timer_icon),
-              contentDescription = "Tokens",
-              modifier = Modifier.size(28.dp)
+    Scaffold(
+        topBar = { TopHomeBar() },
+        bottomBar = {
+            HomeFooter(
+                navController = navController,
+                currentRoute = currentRoute,
+                onCameraClick = onCameraClick
             )
-            Spacer(
-              modifier = Modifier.width(
-                8.dp
-              )
-            )
-
-            Column {
-              Text(
-                text = "TOTP",
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold
-              )
-              Text(
-                text = "Time-based One-Time Password",
-                fontSize = 14.sp,
-                color = Color.Gray
-              )
-            }
-          }
         }
-      }
+    ) { innerPadding ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.Top,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+
+                Button(
+                    onClick = { navController.navigate(Screen.TOTPScreen.route) },
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = BtnBg,
+                        contentColor = BtnTxt,
+                    ),
+                    contentPadding = PaddingValues(0.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(160.dp)
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(start = 20.dp),
+                        horizontalArrangement = Arrangement.Start,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Image(
+                            painter = painterResource(R.drawable.timer_icon),
+                            contentDescription = "Tokens",
+                            modifier = Modifier.size(28.dp)
+                        )
+                        Spacer(
+                            modifier = Modifier.width(
+                                8.dp
+                            )
+                        )
+
+                        Column {
+                            Text(
+                                text = "TOTP",
+                                fontSize = 24.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                text = "Time-based One-Time Password",
+                                fontSize = 14.sp,
+                                color = Color.Gray
+                            )
+                        }
+                    }
+                }
+            }
+        }
     }
-  }
 }
 
 
 @Preview(showBackground = true)
 @Composable
 fun StrongScreenPreview() {
-  AuthfySampleTheme {
-    Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-      StrongScreen(navController = rememberNavController())
+    AuthfySampleTheme {
+        Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+            StrongScreen(navController = rememberNavController(), onCameraClick = {})
+        }
     }
-  }
 }

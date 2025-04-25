@@ -61,75 +61,86 @@ import kotlinx.coroutines.launch
 
 
 @Composable
-fun ConnectScreen(navController: NavController, authStateManager: AuthStateManager) {
-  val TAG = "AUTHCUBE:CONNECT_SCREEN"
-  val currentRoute by remember { mutableStateOf("connect") }
+fun ConnectScreen(
+    navController: NavController,
+    authStateManager: AuthStateManager,
+    onCameraClick: () -> Unit
+) {
+    val TAG = "AUTHCUBE:CONNECT_SCREEN"
+    val currentRoute by remember { mutableStateOf("connect") }
 
-  Scaffold(
-    topBar = { TopHomeBar() },
-    bottomBar = { HomeFooter(navController = navController, currentRoute = currentRoute) }
-  ) { innerPadding ->
-    Box(
-      modifier = Modifier
-        .fillMaxSize()
-        .padding(innerPadding),
-      contentAlignment = Alignment.BottomCenter
-    ) {
-      Column(
-        modifier = Modifier
-          .fillMaxSize()
-          .padding(16.dp),
-        verticalArrangement = Arrangement.Top,
-        horizontalAlignment = Alignment.CenterHorizontally
-      ) {
-
-        Button(
-          onClick = { navController.navigate(Screen.TokensScreen.route) },
-          shape = RoundedCornerShape(12.dp),
-          colors = ButtonDefaults.buttonColors(
-            containerColor = BtnBg,
-            contentColor = BtnTxt,
-          ),
-          contentPadding = PaddingValues(0.dp),
-          modifier = Modifier
-            .fillMaxWidth()
-            .height(160.dp)
-        ) {
-          Row(
-            modifier = Modifier
-              .fillMaxWidth()
-              .padding(start = 20.dp),
-            horizontalArrangement = Arrangement.Start,
-            verticalAlignment = Alignment.CenterVertically
-          ) {
-            Image(
-              painter = painterResource(R.drawable.token_icon),
-              contentDescription = "Tokens",
-              modifier = Modifier.size(28.dp)
+    Scaffold(
+        topBar = { TopHomeBar() },
+        bottomBar = {
+            HomeFooter(
+                navController = navController,
+                currentRoute = currentRoute,
+                onCameraClick = onCameraClick
             )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-              text = "Tokens",
-              fontSize = 24.sp,
-              fontWeight = FontWeight.Bold
-            )
-          }
         }
-      }
+    ) { innerPadding ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding),
+            contentAlignment = Alignment.BottomCenter
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.Top,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+
+                Button(
+                    onClick = { navController.navigate(Screen.TokensScreen.route) },
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = BtnBg,
+                        contentColor = BtnTxt,
+                    ),
+                    contentPadding = PaddingValues(0.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(160.dp)
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(start = 20.dp),
+                        horizontalArrangement = Arrangement.Start,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Image(
+                            painter = painterResource(R.drawable.token_icon),
+                            contentDescription = "Tokens",
+                            modifier = Modifier.size(28.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Tokens",
+                            fontSize = 24.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+            }
+        }
     }
-  }
 
 }
 
 @Preview(showBackground = true)
 @Composable
 fun ConnectScreenPreview() {
-  AuthfySampleTheme {
-    Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-      ConnectScreen(
-        navController = rememberNavController(),
-        authStateManager = AuthStateManager(null, null, null)
-      )
+    AuthfySampleTheme {
+        Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+            ConnectScreen(
+                navController = rememberNavController(),
+                authStateManager = AuthStateManager(null, null, null),
+                onCameraClick = {}
+            )
+        }
     }
-  }
 }

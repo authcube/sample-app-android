@@ -53,7 +53,8 @@ import org.json.JSONObject
 @Composable
 fun DeviceInformation(
     navController: NavController,
-    authStateManager: AuthStateManager
+    authStateManager: AuthStateManager,
+    onCameraClick: () -> Unit
 ) {
     val currentRoute by remember { mutableStateOf("risk") }
     val context = LocalContext.current
@@ -68,7 +69,8 @@ fun DeviceInformation(
         bottomBar = {
             HomeFooter(
                 navController = navController,
-                currentRoute = currentRoute
+                currentRoute = currentRoute,
+                onCameraClick = onCameraClick
             )
         }
     ) { innerPadding ->
@@ -99,7 +101,8 @@ fun DeviceInformation(
                                 if (useJWE) {
                                     val jwk = getJwkFromIDP(configPrefs = configPrefs)
                                     val key = findEncKeyFromJwks(jwk)
-                                    val response = authStateManager.authfySdk.getEncryptedDeviceInfo(key)
+                                    val response =
+                                        authStateManager.authfySdk.getEncryptedDeviceInfo(key)
                                     deviceInfo.value = response
                                 } else {
                                     val response = authStateManager.authfySdk.deviceInfo
@@ -220,7 +223,8 @@ fun DeviceInformationPreview() {
         Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
             DeviceInformation(
                 navController = rememberNavController(),
-                authStateManager = AuthStateManager(null, null, null)
+                authStateManager = AuthStateManager(null, null, null),
+                onCameraClick = {}
             )
         }
     }

@@ -80,504 +80,509 @@ import kotlin.coroutines.resumeWithException
 
 @Composable
 fun TOTP(
-  navController: NavController,
-  authStateManager: AuthStateManager
+    navController: NavController,
+    authStateManager: AuthStateManager,
+    onCameraClick: () -> Unit
 ) {
-  val TAG = "AUTHCUBE:TOTP"
+    val TAG = "AUTHCUBE:TOTP"
 
-  val scope = rememberCoroutineScope()
-  val context = LocalContext.current
-  val clipboardManager = LocalClipboardManager.current
+    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+    val clipboardManager = LocalClipboardManager.current
 
-  val configPrefs = ConfigPreferences(context)
-  val userPrefs = UserPreferences(context)
+    val configPrefs = ConfigPreferences(context)
+    val userPrefs = UserPreferences(context)
 
-  val authService = AuthorizationService(context)
+    val authService = AuthorizationService(context)
 
-  var timeLeft by remember { mutableIntStateOf(30) }
-  var totpCode by remember { mutableStateOf("") }
-  var isEnrolled by remember { mutableStateOf(false) }
+    var timeLeft by remember { mutableIntStateOf(30) }
+    var totpCode by remember { mutableStateOf("") }
+    var isEnrolled by remember { mutableStateOf(false) }
 
-  // Timer effect
-  LaunchedEffect(key1 = true) {
-    while (true) {
-      if (totpCode == "") {
-        val generatedCode = generateTOTP(authStateManager = authStateManager)
-        totpCode = generatedCode?.toString() ?: "null"
-        isEnrolled = generatedCode != null
-      }
+    // Timer effect
+    LaunchedEffect(key1 = true) {
+        while (true) {
+            if (totpCode == "") {
+                val generatedCode = generateTOTP(authStateManager = authStateManager)
+                totpCode = generatedCode?.toString() ?: "null"
+                isEnrolled = generatedCode != null
+            }
 
-      delay(1000L)
-      timeLeft = if (timeLeft <= 1) {
-        // Generate new TOTP code here
-        val newCode = generateTOTP(authStateManager = authStateManager)
-        totpCode = newCode?.toString() ?: "null"
-        isEnrolled = newCode != null
-        30
-      } else {
-        timeLeft - 1
-      }
-    }
-  }
-
-  var showDialog by remember { mutableStateOf(false) }
-  var isCodeValid by remember { mutableStateOf(false) }
-  if (showDialog) {
-    AlertDialog(
-      onDismissRequest = { showDialog = false },
-      containerColor = MaterialTheme.colorScheme.surface,
-      title = {
-        Row(
-          horizontalArrangement = Arrangement.spacedBy(8.dp),
-          verticalAlignment = Alignment.CenterVertically
-        ) {
-          Icon(
-            imageVector = if (isCodeValid) {
-              Icons.Default.CheckCircle
+            delay(1000L)
+            timeLeft = if (timeLeft <= 1) {
+                // Generate new TOTP code here
+                val newCode = generateTOTP(authStateManager = authStateManager)
+                totpCode = newCode?.toString() ?: "null"
+                isEnrolled = newCode != null
+                30
             } else {
-              Icons.Default.Warning
+                timeLeft - 1
+            }
+        }
+    }
+
+    var showDialog by remember { mutableStateOf(false) }
+    var isCodeValid by remember { mutableStateOf(false) }
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = { showDialog = false },
+            containerColor = MaterialTheme.colorScheme.surface,
+            title = {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = if (isCodeValid) {
+                            Icons.Default.CheckCircle
+                        } else {
+                            Icons.Default.Warning
+                        },
+                        contentDescription = if (isCodeValid) "Success" else "Error",
+                        tint = if (isCodeValid) {
+                            Color.Green
+                        } else {
+                            Color.Red
+                        }
+                    )
+                    Text(
+                        text = if (isCodeValid) "Valid Code" else "Invalid Code",
+                        style = MaterialTheme.typography.titleLarge
+                    )
+                }
             },
-            contentDescription = if (isCodeValid) "Success" else "Error",
-            tint = if (isCodeValid) {
-              Color.Green
-            } else {
-              Color.Red
+            text = {
+                Text(
+                    text = if (isCodeValid) {
+                        "The TOTP code you entered is valid."
+                    } else {
+                        "The TOTP code you entered is incorrect. Please try again."
+                    },
+                    style = MaterialTheme.typography.bodyLarge
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = { showDialog = false }
+                ) { Text("OK") }
             }
-          )
-          Text(
-            text = if (isCodeValid) "Valid Code" else "Invalid Code",
-            style = MaterialTheme.typography.titleLarge
-          )
-        }
-      },
-      text = {
-        Text(
-          text = if (isCodeValid) {
-            "The TOTP code you entered is valid."
-          } else {
-            "The TOTP code you entered is incorrect. Please try again."
-          },
-          style = MaterialTheme.typography.bodyLarge
         )
-      },
-      confirmButton = {
-        TextButton(
-          onClick = { showDialog = false }
-        ) { Text("OK") }
-      }
-    )
-  }
-
-  Scaffold(
-    topBar = { RiskHeader(navController, Screen.StrongScreen.route) },
-    bottomBar = { HomeFooter(navController, "strong") }
-  ) { innerPadding ->
-    Column(
-      modifier = Modifier
-        .fillMaxSize()
-        .padding(innerPadding),
-      horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-      Spacer(modifier = Modifier.height(32.dp))
-
-      // Title
-      Text(
-        text = "Two-Factor Code",
-        style = MaterialTheme.typography.titleLarge,
-        fontWeight = FontWeight.Bold
-      )
-
-      Spacer(modifier = Modifier.height(32.dp))
-
-      // TOTP Code Display
-      Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Center,
-        modifier = Modifier.fillMaxWidth()
-      ) {
-
-        Spacer(modifier = Modifier.weight(1f))
-
-        Text(
-          text = if (totpCode != "null") totpCode else "000000",
-          style = MaterialTheme.typography.titleLarge,
-          fontFamily = FontFamily.Monospace,
-          letterSpacing = 4.sp,
-          modifier = Modifier.weight(1f)
-        )
-
-        IconButton(
-          onClick = {
-            clipboardManager.setText(AnnotatedString(totpCode))
-            Toast.makeText(context, "Code copied!", Toast.LENGTH_SHORT).show()
-          },
-          modifier = Modifier.weight(1f)
-        ) {
-          Image(
-            painter = painterResource(R.drawable.copy_icon),
-            contentDescription = "Copy code",
-          )
-        }
-      }
-
-      Spacer(modifier = Modifier.height(48.dp))
-
-      // Timer Circle
-      Box(
-        contentAlignment = Alignment.Center,
-        modifier = Modifier
-          .size(120.dp)
-          .border(
-            width = 4.dp,
-            color = MaterialTheme.colorScheme.primary,
-            shape = CircleShape
-          )
-      ) {
-        Text(
-          text = timeLeft.toString(),
-          style = MaterialTheme.typography.titleMedium,
-          color = if (timeLeft <= 5) Color.Red else MaterialTheme.colorScheme.primary,
-          fontWeight = FontWeight.Bold
-        )
-      }
-
-      Spacer(modifier = Modifier.height(16.dp))
-
-      var validationCode by remember { mutableStateOf("") }
-
-      Row(
-        modifier = Modifier
-          .fillMaxWidth()
-          .padding(horizontal = 36.dp)
-          .padding(top = 20.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalAlignment = Alignment.CenterVertically
-      ) {
-        OutlinedTextField(
-          value = validationCode,
-          onValueChange = {
-            // allow only nums and max to 6 digits
-            if (it.length <= 6 && it.all { char -> char.isDigit() }) {
-              validationCode = it
-            }
-          },
-          modifier = Modifier
-            .weight(1f)
-            .height(56.dp),
-          placeholder = { Text("Enter TOTP code") },
-          keyboardOptions = KeyboardOptions(
-            keyboardType = KeyboardType.NumberPassword,
-            imeAction = ImeAction.Done
-          ),
-          singleLine = true,
-          shape = RoundedCornerShape(12.dp)
-        )
-        Button(
-          onClick = {
-            scope.launch {
-              isCodeValid = verifyTOTP(
-                totpCode = validationCode,
-                configPrefs = configPrefs,
-                authStateManager = authStateManager,
-                authService = authService
-              )
-              showDialog = true
-              validationCode = ""
-            }
-          },
-          colors = ButtonDefaults.buttonColors(
-            containerColor = BtnBg,
-            contentColor = BtnTxt,
-          ),
-          shape = RoundedCornerShape(12.dp),
-          modifier = Modifier.height(56.dp)
-        ) {
-          Text("Validate")
-        }
-      }
-
-
-      // Enrollment button
-      Button(
-        colors = ButtonDefaults.buttonColors(
-          containerColor = BtnBg,
-          contentColor = BtnTxt,
-        ),
-        shape = RoundedCornerShape(12.dp),
-        onClick = {
-          scope.launch {
-            if (!isEnrolled) {
-              doEnrollment(
-                configPrefs = configPrefs,
-                userPrefs = userPrefs,
-                authStateManager = authStateManager,
-                authService = authService
-              )
-              timeLeft = 30
-              val newCode = generateTOTP(authStateManager = authStateManager)
-              totpCode = newCode ?: "null"
-              isEnrolled = newCode != null
-            } else {
-              doDeleteEnrollment(
-                configPrefs = configPrefs,
-                userPrefs = userPrefs,
-                authStateManager = authStateManager,
-                authService = authService
-              )
-              timeLeft = 30
-              totpCode = "null"
-              isEnrolled = false
-            }
-          }
-        },
-        modifier = Modifier
-          .fillMaxWidth()
-          .padding(horizontal = 36.dp)
-          .padding(top = 20.dp)
-          .height(56.dp)
-      ) {
-        Text(
-          text = if (isEnrolled) "Unroll" else "Enroll",
-          fontSize = 16.sp
-        )
-      }
     }
-  }
+
+    Scaffold(
+        topBar = { RiskHeader(navController, Screen.StrongScreen.route) },
+        bottomBar = { HomeFooter(navController, "strong", onCameraClick = onCameraClick) }
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Spacer(modifier = Modifier.height(32.dp))
+
+            // Title
+            Text(
+                text = "Two-Factor Code",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold
+            )
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            // TOTP Code Display
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+
+                Spacer(modifier = Modifier.weight(1f))
+
+                Text(
+                    text = if (totpCode != "null") totpCode else "000000",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontFamily = FontFamily.Monospace,
+                    letterSpacing = 4.sp,
+                    modifier = Modifier.weight(1f)
+                )
+
+                IconButton(
+                    onClick = {
+                        clipboardManager.setText(AnnotatedString(totpCode))
+                        Toast.makeText(context, "Code copied!", Toast.LENGTH_SHORT).show()
+                    },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Image(
+                        painter = painterResource(R.drawable.copy_icon),
+                        contentDescription = "Copy code",
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(48.dp))
+
+            // Timer Circle
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .size(120.dp)
+                    .border(
+                        width = 4.dp,
+                        color = MaterialTheme.colorScheme.primary,
+                        shape = CircleShape
+                    )
+            ) {
+                Text(
+                    text = timeLeft.toString(),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = if (timeLeft <= 5) Color.Red else MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            var validationCode by remember { mutableStateOf("") }
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 36.dp)
+                    .padding(top = 20.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                OutlinedTextField(
+                    value = validationCode,
+                    onValueChange = {
+                        // allow only nums and max to 6 digits
+                        if (it.length <= 6 && it.all { char -> char.isDigit() }) {
+                            validationCode = it
+                        }
+                    },
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(56.dp),
+                    placeholder = { Text("Enter TOTP code") },
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.NumberPassword,
+                        imeAction = ImeAction.Done
+                    ),
+                    singleLine = true,
+                    shape = RoundedCornerShape(12.dp)
+                )
+                Button(
+                    onClick = {
+                        scope.launch {
+                            isCodeValid = verifyTOTP(
+                                totpCode = validationCode,
+                                configPrefs = configPrefs,
+                                authStateManager = authStateManager,
+                                authService = authService
+                            )
+                            showDialog = true
+                            validationCode = ""
+                        }
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = BtnBg,
+                        contentColor = BtnTxt,
+                    ),
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.height(56.dp)
+                ) {
+                    Text("Validate")
+                }
+            }
+
+
+            // Enrollment button
+            Button(
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = BtnBg,
+                    contentColor = BtnTxt,
+                ),
+                shape = RoundedCornerShape(12.dp),
+                onClick = {
+                    scope.launch {
+                        if (!isEnrolled) {
+                            doEnrollment(
+                                configPrefs = configPrefs,
+                                userPrefs = userPrefs,
+                                authStateManager = authStateManager,
+                                authService = authService
+                            )
+                            timeLeft = 30
+                            val newCode = generateTOTP(authStateManager = authStateManager)
+                            totpCode = newCode ?: "null"
+                            isEnrolled = newCode != null
+                        } else {
+                            doDeleteEnrollment(
+                                configPrefs = configPrefs,
+                                userPrefs = userPrefs,
+                                authStateManager = authStateManager,
+                                authService = authService
+                            )
+                            timeLeft = 30
+                            totpCode = "null"
+                            isEnrolled = false
+                        }
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 36.dp)
+                    .padding(top = 20.dp)
+                    .height(56.dp)
+            ) {
+                Text(
+                    text = if (isEnrolled) "Unroll" else "Enroll",
+                    fontSize = 16.sp
+                )
+            }
+        }
+    }
 }
 
 private suspend fun doEnrollment(
-  configPrefs: ConfigPreferences,
-  userPrefs: UserPreferences,
-  authStateManager: AuthStateManager,
-  authService: AuthorizationService
+    configPrefs: ConfigPreferences,
+    userPrefs: UserPreferences,
+    authStateManager: AuthStateManager,
+    authService: AuthorizationService
 ) {
-  val TAG = "AUTHCUBE:ENROLL_TOTP"
-  val config = configPrefs.loadConfig()
-  val enrollmentUrl = config.server
-    .split("/")
-    .dropLast(1)
-    .joinToString("/") + "/mfa/totp/enrollment"
+    val TAG = "AUTHCUBE:ENROLL_TOTP"
+    val config = configPrefs.loadConfig()
+    val enrollmentUrl = config.server
+        .split("/")
+        .dropLast(1)
+        .joinToString("/") + "/mfa/totp/enrollment"
 
 
 
-  return suspendCancellableCoroutine { continuation ->
-    authStateManager.authState.performActionWithFreshTokens(authService,
-      AuthState.AuthStateAction { accessToken, _, ex ->
-        if (ex != null) {
-          Log.e(TAG, "Error fetching a fresh token: ${ex.message}")
-          return@AuthStateAction
-        }
-
-        val mainJsonObject = JsonObject()
-        mainJsonObject.addProperty("username", userPrefs.getUsername())
-        mainJsonObject.addProperty("verbose", false)
-        val body = Gson().toJson(mainJsonObject)
-
-        val headers = mapOf(
-          "Content-Type" to "application/json",
-          "Authorization" to "Bearer $accessToken"
-        )
-
-        runBlocking {
-          when (val result = NetworkUtils.doPost(
-            urlString = enrollmentUrl,
-            headers = headers,
-            body = body
-          )) {
-
-            is NetworkUtils.NetworkResult.Success -> {
-              Log.d(TAG, "Enrollment successful: ${result.data}")
-
-              try {
-                val response = result.data
-                val contents = response["contents"] as? List<*>
-
-                val totpDataContent = contents?.firstOrNull { content ->
-                  val content = content as? Map<*, *>
-                  val rels = content?.get("rel") as? List<*>
-                  rels?.contains("urn:mfao:totp:enrollment:data") == true
-                } as? Map<*, *>
-
-                val values = totpDataContent?.get("values") as? List<*>
-                var totpUrl = values?.firstOrNull() as? String
-                if (!totpUrl.isNullOrEmpty()) {
-                  totpUrl = totpUrl.replace("-", "")
-                  Log.d(TAG, "TOTP URL: $totpUrl")
-                  authStateManager.authfySdk.setSeed(totpUrl)
+    return suspendCancellableCoroutine { continuation ->
+        authStateManager.authState.performActionWithFreshTokens(
+            authService,
+            AuthState.AuthStateAction { accessToken, _, ex ->
+                if (ex != null) {
+                    Log.e(TAG, "Error fetching a fresh token: ${ex.message}")
+                    return@AuthStateAction
                 }
-              } catch (e: Exception) {
-                Log.e(TAG, "Error parsing TOTP URI", e)
-              }
-              continuation.resume(Unit)
-            }
 
-            is NetworkUtils.NetworkResult.Error -> {
-              Log.e(
-                TAG, "Enrollment failed: Code: ${result.code}, " +
-                  "Message: ${result.message}, " +
-                  "Error body: ${result.errorBody}"
-              )
-              // handle error case
-            }
+                val mainJsonObject = JsonObject()
+                mainJsonObject.addProperty("username", userPrefs.getUsername())
+                mainJsonObject.addProperty("verbose", false)
+                val body = Gson().toJson(mainJsonObject)
 
-            is NetworkUtils.NetworkResult.Exception -> {
-              Log.e(TAG, "Enrollment exception", result.e)
-              // handle exception case
-            }
-          }
-        }
-      })
-  }
+                val headers = mapOf(
+                    "Content-Type" to "application/json",
+                    "Authorization" to "Bearer $accessToken"
+                )
+
+                runBlocking {
+                    when (val result = NetworkUtils.doPost(
+                        urlString = enrollmentUrl,
+                        headers = headers,
+                        body = body
+                    )) {
+
+                        is NetworkUtils.NetworkResult.Success -> {
+                            Log.d(TAG, "Enrollment successful: ${result.data}")
+
+                            try {
+                                val response = result.data
+                                val contents = response["contents"] as? List<*>
+
+                                val totpDataContent = contents?.firstOrNull { content ->
+                                    val content = content as? Map<*, *>
+                                    val rels = content?.get("rel") as? List<*>
+                                    rels?.contains("urn:mfao:totp:enrollment:data") == true
+                                } as? Map<*, *>
+
+                                val values = totpDataContent?.get("values") as? List<*>
+                                var totpUrl = values?.firstOrNull() as? String
+                                if (!totpUrl.isNullOrEmpty()) {
+                                    totpUrl = totpUrl.replace("-", "")
+                                    Log.d(TAG, "TOTP URL: $totpUrl")
+                                    authStateManager.authfySdk.setSeed(totpUrl)
+                                }
+                            } catch (e: Exception) {
+                                Log.e(TAG, "Error parsing TOTP URI", e)
+                            }
+                            continuation.resume(Unit)
+                        }
+
+                        is NetworkUtils.NetworkResult.Error -> {
+                            Log.e(
+                                TAG, "Enrollment failed: Code: ${result.code}, " +
+                                    "Message: ${result.message}, " +
+                                    "Error body: ${result.errorBody}"
+                            )
+                            // handle error case
+                        }
+
+                        is NetworkUtils.NetworkResult.Exception -> {
+                            Log.e(TAG, "Enrollment exception", result.e)
+                            // handle exception case
+                        }
+                    }
+                }
+            })
+    }
 }
 
 private suspend fun doDeleteEnrollment(
-  configPrefs: ConfigPreferences,
-  userPrefs: UserPreferences,
-  authStateManager: AuthStateManager,
-  authService: AuthorizationService
+    configPrefs: ConfigPreferences,
+    userPrefs: UserPreferences,
+    authStateManager: AuthStateManager,
+    authService: AuthorizationService
 ) {
-  val TAG = "AUTHCUBE:UNROLL_TOTP"
-  val config = configPrefs.loadConfig()
-  val deleteEnrollmentUrl = config.server
-    .split("/")
-    .dropLast(1)
-    .joinToString("/") + "/mfa/totp/delete"
+    val TAG = "AUTHCUBE:UNROLL_TOTP"
+    val config = configPrefs.loadConfig()
+    val deleteEnrollmentUrl = config.server
+        .split("/")
+        .dropLast(1)
+        .joinToString("/") + "/mfa/totp/delete"
 
-  return suspendCancellableCoroutine { continuation ->
-    authStateManager.authState.performActionWithFreshTokens(authService,
-      AuthState.AuthStateAction { accessToken, _, ex ->
-        if (ex != null) {
-          Log.e(TAG, "Error fetching a fresh token: ${ex.message}")
-          return@AuthStateAction
-        }
+    return suspendCancellableCoroutine { continuation ->
+        authStateManager.authState.performActionWithFreshTokens(
+            authService,
+            AuthState.AuthStateAction { accessToken, _, ex ->
+                if (ex != null) {
+                    Log.e(TAG, "Error fetching a fresh token: ${ex.message}")
+                    return@AuthStateAction
+                }
 
-        val mainJsonObject = JsonObject()
-        mainJsonObject.addProperty("username", userPrefs.getUsername())
-        mainJsonObject.addProperty("verbose", false)
-        val body = Gson().toJson(mainJsonObject)
+                val mainJsonObject = JsonObject()
+                mainJsonObject.addProperty("username", userPrefs.getUsername())
+                mainJsonObject.addProperty("verbose", false)
+                val body = Gson().toJson(mainJsonObject)
 
-        val headers = mapOf(
-          "Content-Type" to "application/json",
-          "Authorization" to "Bearer $accessToken"
-        )
+                val headers = mapOf(
+                    "Content-Type" to "application/json",
+                    "Authorization" to "Bearer $accessToken"
+                )
 
-        runBlocking {
-          when (val result = NetworkUtils.doPost(
-            urlString = deleteEnrollmentUrl,
-            headers = headers,
-            body = body
-          )) {
+                runBlocking {
+                    when (val result = NetworkUtils.doPost(
+                        urlString = deleteEnrollmentUrl,
+                        headers = headers,
+                        body = body
+                    )) {
 
-            is NetworkUtils.NetworkResult.Success -> {
-              Log.d(TAG, "Delete enrollment successful: ${result.data}")
-              continuation.resume(Unit)
-              // handle success case
-            }
+                        is NetworkUtils.NetworkResult.Success -> {
+                            Log.d(TAG, "Delete enrollment successful: ${result.data}")
+                            continuation.resume(Unit)
+                            // handle success case
+                        }
 
-            is NetworkUtils.NetworkResult.Error -> {
-              Log.e(
-                TAG, "Delete enrollment failed: Code: ${result.code}, " +
-                  "Message: ${result.message}, " +
-                  "Error body: ${result.errorBody}"
-              )
-              // handle error case
-            }
+                        is NetworkUtils.NetworkResult.Error -> {
+                            Log.e(
+                                TAG, "Delete enrollment failed: Code: ${result.code}, " +
+                                    "Message: ${result.message}, " +
+                                    "Error body: ${result.errorBody}"
+                            )
+                            // handle error case
+                        }
 
-            is NetworkUtils.NetworkResult.Exception -> {
-              Log.e(TAG, "Delete enrollment exception", result.e)
-              // handle exception case
-            }
-          }
-        }
-      })
-  }
+                        is NetworkUtils.NetworkResult.Exception -> {
+                            Log.e(TAG, "Delete enrollment exception", result.e)
+                            // handle exception case
+                        }
+                    }
+                }
+            })
+    }
 }
 
 private fun generateTOTP(authStateManager: AuthStateManager): String? {
-  if (authStateManager.authfySdk.hasSeed()) {
-    return authStateManager.authfySdk.generateTOTP()
-  }
-  Log.e("AUTHCUBE:GENERATE_TOTP", "Seed is not set")
-  return null
+    if (authStateManager.authfySdk.hasSeed()) {
+        return authStateManager.authfySdk.generateTOTP()
+    }
+    Log.e("AUTHCUBE:GENERATE_TOTP", "Seed is not set")
+    return null
 }
 
 private suspend fun verifyTOTP(
-  totpCode: String,
-  configPrefs: ConfigPreferences,
-  authStateManager: AuthStateManager,
-  authService: AuthorizationService
+    totpCode: String,
+    configPrefs: ConfigPreferences,
+    authStateManager: AuthStateManager,
+    authService: AuthorizationService
 ): Boolean {
-  val TAG = "AUTHCUBE:VERIFY_TOTP"
-  val config = configPrefs.loadConfig()
-  val verifyTOTPUrl = config.server
-    .split("/")
-    .dropLast(1)
-    .joinToString("/") + "/mfa/totp/verify"
+    val TAG = "AUTHCUBE:VERIFY_TOTP"
+    val config = configPrefs.loadConfig()
+    val verifyTOTPUrl = config.server
+        .split("/")
+        .dropLast(1)
+        .joinToString("/") + "/mfa/totp/verify"
 
-  return suspendCancellableCoroutine { continuation ->
-    authStateManager.authState.performActionWithFreshTokens(authService,
-      AuthState.AuthStateAction { accessToken, _, ex ->
-        if (ex != null) {
-          Log.e(TAG, "Error fetching a fresh token: ${ex.message}")
-          return@AuthStateAction
-        }
+    return suspendCancellableCoroutine { continuation ->
+        authStateManager.authState.performActionWithFreshTokens(
+            authService,
+            AuthState.AuthStateAction { accessToken, _, ex ->
+                if (ex != null) {
+                    Log.e(TAG, "Error fetching a fresh token: ${ex.message}")
+                    return@AuthStateAction
+                }
 
-        val mainJsonObject = JsonObject()
-        mainJsonObject.addProperty("otp", totpCode)
-        mainJsonObject.addProperty("verbose", false)
-        val body = Gson().toJson(mainJsonObject)
+                val mainJsonObject = JsonObject()
+                mainJsonObject.addProperty("otp", totpCode)
+                mainJsonObject.addProperty("verbose", false)
+                val body = Gson().toJson(mainJsonObject)
 
-        val headers = mapOf(
-          "Content-Type" to "application/json",
-          "Authorization" to "Bearer $accessToken"
-        )
+                val headers = mapOf(
+                    "Content-Type" to "application/json",
+                    "Authorization" to "Bearer $accessToken"
+                )
 
-        runBlocking {
-          when (val result = NetworkUtils.doPost(
-            urlString = verifyTOTPUrl,
-            headers = headers,
-            body = body
-          )) {
+                runBlocking {
+                    when (val result = NetworkUtils.doPost(
+                        urlString = verifyTOTPUrl,
+                        headers = headers,
+                        body = body
+                    )) {
 
-            is NetworkUtils.NetworkResult.Success -> {
-              Log.d(TAG, "TOTP is valid: ${result.data}")
-              continuation.resume(true)
-              // handle success case
-            }
+                        is NetworkUtils.NetworkResult.Success -> {
+                            Log.d(TAG, "TOTP is valid: ${result.data}")
+                            continuation.resume(true)
+                            // handle success case
+                        }
 
-            is NetworkUtils.NetworkResult.Error -> {
-              Log.e(
-                TAG, "Delete enrollment failed: Code: ${result.code}, " +
-                  "Message: ${result.message}, " +
-                  "Error body: ${result.errorBody}"
-              )
-              continuation.resume(false)
+                        is NetworkUtils.NetworkResult.Error -> {
+                            Log.e(
+                                TAG, "Delete enrollment failed: Code: ${result.code}, " +
+                                    "Message: ${result.message}, " +
+                                    "Error body: ${result.errorBody}"
+                            )
+                            continuation.resume(false)
 
-              // handle error case
-            }
+                            // handle error case
+                        }
 
-            is NetworkUtils.NetworkResult.Exception -> {
-              Log.e(TAG, "Delete enrollment exception", result.e)
-              continuation.resumeWithException(result.e)
+                        is NetworkUtils.NetworkResult.Exception -> {
+                            Log.e(TAG, "Delete enrollment exception", result.e)
+                            continuation.resumeWithException(result.e)
 
-              // handle exception case
-            }
-          }
-        }
-      })
-  }
+                            // handle exception case
+                        }
+                    }
+                }
+            })
+    }
 }
 
 
 @Preview(showBackground = true)
 @Composable
 fun TOTPPreview() {
-  AuthfySampleTheme {
-    Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-      TOTP(
-        navController = rememberNavController(),
-        authStateManager = AuthStateManager(null, null, null)
-      )
+    AuthfySampleTheme {
+        Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+            TOTP(
+                navController = rememberNavController(),
+                authStateManager = AuthStateManager(null, null, null),
+                onCameraClick = {}
+            )
+        }
     }
-  }
 }

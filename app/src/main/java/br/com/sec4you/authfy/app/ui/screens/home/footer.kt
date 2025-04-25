@@ -9,14 +9,16 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Camera
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -38,8 +40,10 @@ import br.com.sec4you.authfy.app.ui.theme.AuthfySampleTheme
 import br.com.sec4you.authfy.app.ui.theme.BtnBg
 
 
+
+
 @Composable
-fun HomeFooter(navController: NavController, currentRoute: String = "home") {
+fun HomeFooter(navController: NavController, currentRoute: String = "home", onCameraClick: () -> Unit) {
   Row(
     modifier = Modifier
       .background(Color.White)
@@ -65,7 +69,19 @@ fun HomeFooter(navController: NavController, currentRoute: String = "home") {
       onClick = { navController.navigate(Screen.RiskScreen.route) }
     )
 
-    Spacer(modifier = Modifier.width(2.dp))
+//    Spacer(modifier = Modifier.width(2.dp))
+
+// Botão da Câmera (FAB)
+      FloatingActionButton(
+          onClick = onCameraClick,
+          modifier = Modifier
+              .offset(y = (-16).dp) // Eleva o botão um pouco
+              .size(56.dp),
+          containerColor = BtnBg,
+          contentColor = Color.White
+      ) {
+          Icon(Icons.Filled.Camera, "Escanear QR Code")
+      }
 
     Column(
       horizontalAlignment = Alignment.CenterHorizontally,
@@ -135,7 +151,7 @@ fun BottomNavItem(
 fun HomeFooterPanelPreview() {
   AuthfySampleTheme {
     Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-      HomeFooter(navController = rememberNavController())
+      HomeFooter(navController = rememberNavController(), onCameraClick = {})
     }
   }
 }

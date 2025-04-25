@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -98,7 +97,8 @@ fun HomeScreen(
     navController: NavController,
     authenticated: Boolean,
     onAuthenticatedChange: (Boolean) -> Unit,
-    authStateManager: AuthStateManager
+    authStateManager: AuthStateManager,
+    onCameraClick: () -> Unit
 ) {
     var TAG = "AUTHCUBE:SC:HO"
     val currentRoute by remember { mutableStateOf("home") }
@@ -137,7 +137,8 @@ fun HomeScreen(
         bottomBar = {
             HomeFooter(
                 navController = navController,
-                currentRoute = currentRoute
+                currentRoute = currentRoute,
+                onCameraClick = onCameraClick
             )
         }
     ) { innerPadding ->
@@ -243,7 +244,8 @@ fun HomeScreenPreview() {
                 navController = rememberNavController(),
                 authenticated = true,
                 onAuthenticatedChange = {},
-                authStateManager = AuthStateManager(null, null, null)
+                authStateManager = AuthStateManager(null, null, null),
+                onCameraClick = { }
             )
         }
     }
